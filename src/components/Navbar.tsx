@@ -3,12 +3,20 @@ import Link from "next/link";
 import { useApp } from "@/lib/store";
 import { translations } from "@/lib/translations";
 import { useTheme } from "next-themes";
-import { Sun, Moon, Globe, Boxes } from "lucide-react";
+import { Sun, Moon, Globe, Boxes, ShoppingCart } from "lucide-react";
+import { useCartStore } from "@/hooks/useCartStore";
+import { useEffect, useState } from "react";
 
 export function Navbar() {
   const { lang, setLang } = useApp();
   const { theme, setTheme } = useTheme();
   const t = translations[lang];
+  const totalItems = useCartStore((state) => state.totalItems());
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   return (
     <nav className="sticky top-0 z-50 flex items-center justify-between p-4 bg-background/80 backdrop-blur-md border-b border-card-border">
@@ -21,6 +29,7 @@ export function Navbar() {
         <Link href="/#services" className="hover:text-primary transition-colors">Services</Link>
         <Link href="/#materials" className="hover:text-primary transition-colors">Materials</Link>
         <Link href="/categories" className="hover:text-primary transition-colors">{t.catalog || "Categories"}</Link>
+        <Link href="/products" className="hover:text-primary transition-colors">Print-On-Demand</Link>
         <Link href="/help" className="hover:text-primary transition-colors">{t.help}</Link>
         <Link href="/#contact" className="hover:text-primary transition-colors">{t.contact}</Link>
       </div>
@@ -49,6 +58,15 @@ export function Navbar() {
             {t.signup}
           </Link>
         </div>
+
+        <Link href="/cart" className="relative p-2 rounded-full hover:bg-card-bg transition-colors">
+          <ShoppingCart className="w-5 h-5" />
+          {mounted && totalItems > 0 && (
+            <span className="absolute top-0 right-0 inline-flex items-center justify-center w-4 h-4 text-[10px] font-bold text-white bg-red-500 rounded-full">
+              {totalItems}
+            </span>
+          )}
+        </Link>
       </div>
     </nav>
   );

@@ -1,7 +1,6 @@
 'use client';
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { Lang } from './translations';
-import { ThemeProvider } from 'next-themes';
 
 interface AppCtx {
   lang: Lang;
@@ -28,11 +27,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <ThemeProvider attribute="class" defaultTheme="dark">
-      <Ctx.Provider value={{ lang, setLang }}>
-        {children}
-      </Ctx.Provider>
-    </ThemeProvider>
+    <Ctx.Provider value={{ lang, setLang }}>
+      {children}
+    </Ctx.Provider>
   );
 }
 
