@@ -11,16 +11,16 @@ export default function CategoryDetailsPage() {
   const { lang } = useApp();
   const t = translations[lang];
   const pathname = usePathname();
-  
+
   // Extract category from URL, e.g., /categories/tshirts -> tshirts
   const categoryId = pathname.split('/').pop() || '';
-  
+
   // Dummy products based on category
   const dummyProducts = [
-    { id: 1, name: "Premium Print 1", price: "29.99", image: "https://placehold.co/400x400/222/FFF?text=Design+1" },
-    { id: 2, name: "Custom Design 2", price: "34.99", image: "https://placehold.co/400x400/222/FFF?text=Design+2" },
-    { id: 3, name: "Limited Edition 3", price: "45.00", image: "https://placehold.co/400x400/222/FFF?text=Design+3" },
-    { id: 4, name: "Artist Collab 4", price: "39.99", image: "https://placehold.co/400x400/222/FFF?text=Design+4" },
+    { id: 1, name: "Premium Print 1", price: "300", image: "https://placehold.co/400x400/222/FFF?text=Design+1" },
+    { id: 2, name: "Custom Design 2", price: "350", image: "https://placehold.co/400x400/222/FFF?text=Design+2" },
+    { id: 3, name: "Limited Edition 3", price: "450", image: "https://placehold.co/400x400/222/FFF?text=Design+3" },
+    { id: 4, name: "Artist Collab 4", price: "400", image: "https://placehold.co/400x400/222/FFF?text=Design+4" },
   ];
 
   return (
@@ -51,15 +51,15 @@ export default function CategoryDetailsPage() {
             <div key={product.id} className="group rounded-2xl bg-card-bg border border-card-border overflow-hidden hover:border-primary/50 transition-colors">
               <div className="aspect-square relative overflow-hidden bg-background">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img 
-                  src={product.image} 
+                <img
+                  src={product.image}
                   alt={product.name}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                 />
               </div>
               <div className="p-5">
                 <h3 className="font-bold text-lg mb-1">{product.name}</h3>
-                <p className="text-primary font-bold mb-4">${product.price}</p>
+                <p className="text-primary font-bold mb-4">{product.price} MAD</p>
                 <button className="w-full flex items-center justify-center gap-2 py-2 rounded-lg bg-background border border-card-border hover:bg-primary hover:text-white hover:border-primary transition-colors font-medium">
                   <ShoppingBag className="w-4 h-4" />
                   Add to Cart
