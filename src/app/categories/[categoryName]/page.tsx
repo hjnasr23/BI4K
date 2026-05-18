@@ -90,10 +90,10 @@ export default function CategoryDetailsPage() {
 
   // Dummy products as fallback
   const dummyProducts = [
-    { id: '1', name: "Premium Heavyweight Tee", price: 29.99, image: "https://placehold.co/400x400/222/FFF?text=Heavyweight+Tee", description: "" },
-    { id: '2', name: "Essential Comfort Hoodie", price: 34.99, image: "https://placehold.co/400x400/222/FFF?text=Comfort+Hoodie", description: "" },
-    { id: '3', name: "Streetwear Oversized Sweat", price: 45.00, image: "https://placehold.co/400x400/222/FFF?text=Oversized+Sweat", description: "" },
-    { id: '4', name: "Classic Cotton V-Neck", price: 39.99, image: "https://placehold.co/400x400/222/FFF?text=V-Neck+Tee", description: "" },
+    { id: '1', name: "Premium Heavyweight Tee", price: 300, image: "https://placehold.co/400x400/222/FFF?text=Heavyweight+Tee", description: "" },
+    { id: '2', name: "Essential Comfort Hoodie", price: 350, image: "https://placehold.co/400x400/222/FFF?text=Comfort+Hoodie", description: "" },
+    { id: '3', name: "Streetwear Oversized Sweat", price: 450, image: "https://placehold.co/400x400/222/FFF?text=Oversized+Sweat", description: "" },
+    { id: '4', name: "Classic Cotton V-Neck", price: 400, image: "https://placehold.co/400x400/222/FFF?text=V-Neck+Tee", description: "" },
   ];
 
   useEffect(() => {
@@ -283,7 +283,7 @@ export default function CategoryDetailsPage() {
                           <h3 className="font-black text-lg leading-tight group-hover:text-primary transition-colors line-clamp-2 uppercase tracking-tighter">
                             {product.name}
                           </h3>
-                          <p className="text-xl font-black text-primary ml-4">${product.price}</p>
+                          <p className="text-xl font-black text-primary ml-4">{product.price} MAD</p>
                         </div>
                         
                         <Link 
