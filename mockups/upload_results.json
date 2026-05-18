@@ -1,0 +1,44 @@
+[
+  {
+    "file": "vecteezy_ai-generated-classic-crewneck-t-shirt-mockup-with-model-9_38095951.jpg",
+    "url": "https://htnagmiuapyxaqoptzju.supabase.co/storage/v1/object/public/fashion/vecteezy_ai-generated-classic-crewneck-t-shirt-mockup-with-model-9_38095951.jpg",
+    "cloth": "t-shirt",
+    "audience": "men",
+    "view": "front"
+  },
+  {
+    "file": "vecteezy_closeup-t-shirt-on-men-illustration_23692581.jpg",
+    "url": "https://htnagmiuapyxaqoptzju.supabase.co/storage/v1/object/public/fashion/vecteezy_closeup-t-shirt-on-men-illustration_23692581.jpg",
+    "cloth": "t-shirt",
+    "audience": "men",
+    "view": "front"
+  },
+  {
+    "file": "vecteezy_closeup-t-shirt-on-men-illustration_23692721.jpg",
+    "url": "https://htnagmiuapyxaqoptzju.supabase.co/storage/v1/object/public/fashion/vecteezy_closeup-t-shirt-on-men-illustration_23692721.jpg",
+    "cloth": "t-shirt",
+    "audience": "men",
+    "view": "front"
+  },
+  {
+    "file": "vecteezy_cropped-image-of-man-in-white-blank-t-shirt-on-black-background_26415904.jpg",
+    "url": "https://htnagmiuapyxaqoptzju.supabase.co/storage/v1/object/public/fashion/vecteezy_cropped-image-of-man-in-white-blank-t-shirt-on-black-background_26415904.jpg",
+    "cloth": "t-shirt",
+    "audience": "men",
+    "view": "back"
+  },
+  {
+    "file": "vecteezy_cute-boy-wearing-blank-empty-purple-t-shirt-mockup-for_33334442.jpg",
+    "url": "https://htnagmiuapyxaqoptzju.supabase.co/storage/v1/object/public/fashion/vecteezy_cute-boy-wearing-blank-empty-purple-t-shirt-mockup-for_33334442.jpg",
+    "cloth": "t-shirt",
+    "audience": "kids",
+    "view": "front"
+  },
+  {
+    "file": "vecteezy_cute-boy-wearing-blank-empty-white-t-shirt-mockup-for-design_33333288.jpg",
+    "url": "https://htnagmiuapyxaqoptzju.supabase.co/storage/v1/object/public/fashion/vecteezy_cute-boy-wearing-blank-empty-white-t-shirt-mockup-for-design_33333288.jpg",
+    "cloth": "t-shirt",
+    "audience": "kids",
+    "view": "front"
+  }
+]
