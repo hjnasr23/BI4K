@@ -1,3 +1,4 @@
+﻿ 
 const { createClient } = require('@supabase/supabase-js');
 
 const supabaseUrl = 'https://htnagmiuapyxaqoptzju.supabase.co';
@@ -23,3 +24,4 @@ async function checkTables() {
 }
 
 checkTables();
+
