@@ -5,6 +5,7 @@ import { translations } from "@/lib/translations";
 import { Sun, Moon, Globe, Boxes, ShoppingCart, User as UserIcon, LogOut } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { useState, useEffect } from "react";
+import { Clipboard } from "lucide-react";
 
 export function Navbar() {
   const { lang, setLang, theme, setTheme, user, setIsAuthModalOpen } = useApp();
@@ -66,7 +67,7 @@ export function Navbar() {
               BI4K
             </span>
           </Link>
-          
+
           <div className="hidden md:flex items-center gap-10 text-[11px] font-black uppercase tracking-[0.2em] text-foreground/60">
             <Link href="/#services" className="hover:text-primary transition-colors">Services</Link>
             <Link href="/categories" className="hover:text-primary transition-colors">{t.catalog || "Categories"}</Link>
@@ -75,21 +76,21 @@ export function Navbar() {
 
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-1 bg-card-bg rounded-full p-1 border border-card-border">
-              <button 
+              <button
                 onClick={() => setTheme('dark')}
                 className={`p-2 rounded-full transition-all ${theme === 'dark' ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'hover:bg-white/10 text-foreground/40'}`}
               >
                 <Moon className="w-3.5 h-3.5" />
               </button>
-              <button 
+              <button
                 onClick={() => setTheme('light')}
                 className={`p-2 rounded-full transition-all ${theme === 'light' ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'hover:bg-black/10 text-foreground/40'}`}
               >
                 <Sun className="w-3.5 h-3.5" />
               </button>
             </div>
-            
-            <button 
+
+            <button
               onClick={() => setLang(lang === 'fr' ? 'en' : 'fr')}
               className="flex items-center gap-2 px-3 py-2 rounded-xl hover:bg-card-bg transition-all text-xs font-black uppercase tracking-tighter"
             >
@@ -99,9 +100,10 @@ export function Navbar() {
 
             <div className="w-px h-6 bg-card-border mx-2" />
 
-            <button 
-              onClick={() => alert("Cart feature coming soon!")}
-              className="relative p-2.5 rounded-xl hover:bg-card-bg transition-all group"
+            <button
+              disabled
+              className="relative p-2.5 rounded-xl cursor-not-allowed opacity-50 group"
+              title="Cart feature coming soon"
             >
               <ShoppingCart className="w-5 h-5 text-foreground/70 group-hover:text-primary transition-colors" />
               <span className="absolute -top-1 -right-1 w-5 h-5 bg-accent text-white text-[10px] flex items-center justify-center rounded-full font-black shadow-lg border-2 border-background">
@@ -115,7 +117,14 @@ export function Navbar() {
                   <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-primary/20 to-accent/20 border border-primary/30 flex items-center justify-center">
                     <UserIcon className="w-4 h-4 text-primary" />
                   </div>
-                  <button 
+                  <Link
+                    href="/orders"
+                    className="p-2 rounded-xl text-foreground/40 hover:text-primary hover:bg-primary/5 transition-all"
+                    title="Orders"
+                  >
+                    <Clipboard className="w-4 h-4" />
+                  </Link>
+                  <button
                     onClick={handleSignOut}
                     className="p-2 rounded-xl text-foreground/40 hover:text-accent hover:bg-accent/5 transition-all"
                     title="Sign Out"
@@ -125,13 +134,13 @@ export function Navbar() {
                 </div>
               ) : (
                 <>
-                  <button 
+                  <button
                     onClick={() => setIsAuthModalOpen(true)}
                     className="px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-card-bg transition-all"
                   >
                     {t.login}
                   </button>
-                  <button 
+                  <button
                     onClick={() => setIsAuthModalOpen(true)}
                     className="px-5 py-2.5 rounded-xl text-sm font-black bg-primary text-white hover:bg-primary-hover shadow-lg shadow-primary/20 hover:scale-[1.05] active:scale-[0.98] transition-all"
                   >

@@ -184,6 +184,103 @@ class OrderRequest(BaseModel):
     coordinates: Dict[str, Any]
     preview_data_url: str
 
+class CommandeRequest(BaseModel):
+    total_price: float
+    order_notes: Optional[str] = None
+    shipping_address: Optional[Dict[str, Any]] = None
+
+class LigneCommandeRequest(BaseModel):
+    commande_id: str
+    product_id: Optional[str] = None
+    design_id: str
+    coordinates: Dict[str, Any]
+    preview_data_url: str
+    quantity: int = 1
+    price_unit: float
+
+@app.post("/orders/commande")
+async def create_commande(request: CommandeRequest, user_supabase: Client = Depends(get_user_supabase), auth_header: Optional[str] = Header(None, alias="Authorization")):
+    """Create a new order (Commande)"""
+    try:
+        # Extract user_id from auth header
+        user_id = None
+        if auth_header and auth_header.startswith("Bearer "):
+            token = auth_header.split(" ")[1]
+            # Decode token to get user_id (simplified, you may need jwt library)
+            try:
+                import jwt
+                decoded = jwt.decode(token, options={"verify_signature": False})
+                user_id = decoded.get("sub")
+            except:
+                raise HTTPException(status_code=401, detail="Invalid token")
+        
+        if not user_id:
+            raise HTTPException(status_code=401, detail="User not authenticated")
+        
+        commande_data = {
+            "user_id": user_id,
+            "status": "pending",
+            "total_price": request.total_price,
+            "order_notes": request.order_notes,
+            "shipping_address": request.shipping_address
+        }
+        
+        response = user_supabase.table("Commande").insert(commande_data).execute()
+        
+        if not response.data:
+            raise HTTPException(status_code=500, detail="Failed to create order")
+            
+        return {"status": "success", "data": response.data[0]}
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Internal Server Error: {str(e)}")
+
+@app.get("/orders/commande")
+async def get_user_commandes(user_supabase: Client = Depends(get_user_supabase), auth_header: Optional[str] = Header(None, alias="Authorization")):
+    """Get all orders for the authenticated user"""
+    try:
+        # Extract user_id from auth header
+        user_id = None
+        if auth_header and auth_header.startswith("Bearer "):
+            token = auth_header.split(" ")[1]
+            try:
+                import jwt
+                decoded = jwt.decode(token, options={"verify_signature": False})
+                user_id = decoded.get("sub")
+            except:
+                raise HTTPException(status_code=401, detail="Invalid token")
+        
+        if not user_id:
+            raise HTTPException(status_code=401, detail="User not authenticated")
+        
+        # Fetch orders with their lines
+        response = user_supabase.table("Commande").select("*, LigneCommande(*)").eq("user_id", user_id).order("created_at", desc=True).execute()
+        
+        return {"status": "success", "data": response.data}
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Internal Server Error: {str(e)}")
+
+@app.get("/orders/commande/{commande_id}")
+async def get_commande(commande_id: str, user_supabase: Client = Depends(get_user_supabase)):
+    """Get a specific order by ID"""
+    try:
+        response = user_supabase.table("Commande").select("*, LigneCommande(*)").eq("id", commande_id).single().execute()
+        
+        if not response.data:
+            raise HTTPException(status_code=404, detail="Order not found")
+            
+        return {"status": "success", "data": response.data}
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Internal Server Error: {str(e)}")
+
 @app.post("/orders/ligne-commande")
 async def create_ligne_commande(request: OrderRequest, user_supabase: Client = Depends(get_user_supabase)):
     try:
@@ -217,13 +314,64 @@ async def create_ligne_commande(request: OrderRequest, user_supabase: Client = D
             "product_id": request.product_id,
             "design_id": request.design_id,
             "customization_coordinates": request.coordinates,
-            "preview_url": preview_url
+            "preview_url": preview_url,
+            "quantity": 1,
+            "price_unit": 0
         }
         
         response = user_supabase.table("LigneCommande").insert(ligne_data).execute()
         
         if not response.data:
-            raise HTTPException(status_code=500, detail="Failed to insert order into database")
+            raise HTTPException(status_code=500, detail="Failed to insert order line")
+            
+        return {"status": "success", "data": response.data[0]}
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Internal Server Error: {str(e)}")
+
+@app.post("/orders/ligne-commande/add")
+async def add_ligne_to_commande(request: LigneCommandeRequest, user_supabase: Client = Depends(get_user_supabase)):
+    """Add a line to an existing order"""
+    try:
+        # Extract base64 part of the data URL
+        if "," in request.preview_data_url:
+            base64_data = request.preview_data_url.split(",")[1]
+        else:
+            base64_data = request.preview_data_url
+            
+        image_bytes = base64.b64decode(base64_data)
+        
+        # Validate file size
+        if len(image_bytes) > MAX_FILE_SIZE:
+            raise HTTPException(status_code=400, detail="Preview image exceeds 5MB limit")
+            
+        file_name = f"preview_{uuid.uuid4().hex}.png"
+        
+        # Upload preview to Supabase Storage
+        upload_res = supabase.storage.from_("order-previews").upload(
+            file_name, 
+            image_bytes, 
+            {"content-type": "image/png"}
+        )
+        
+        # Get public URL
+        preview_url = supabase.storage.from_("order-previews").get_public_url(file_name)
+        
+        # Insert into LigneCommande table
+        ligne_data = {
+            "commande_id": request.commande_id,
+            "product_id": request.product_id,
+            "design_id": request.design_id,
+            "customization_coordinates": request.coordinates,
+            "preview_url": preview_url,
+            "quantity": request.quantity,
+            "price_unit": request.price_unit
+        }
+        
+        response = user_supabase.table("LigneCommande").insert(ligne_data).execute()
+        
+        if not response.data:
+            raise HTTPException(status_code=500, detail="Failed to add line to order")
             
         return {"status": "success", "data": response.data[0]}
         

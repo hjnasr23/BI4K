@@ -1,101 +1,188 @@
 'use client';
+
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import Link from "next/link";
-import { Boxes, Mail, Lock } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Mail, Lock, Eye, EyeOff, LogIn, Sparkles, ShieldCheck } from "lucide-react";
 import { useApp } from "@/lib/store";
 import { translations } from "@/lib/translations";
+import { useAuth } from '@/lib/hooks/useAuth';
 
 const loginSchema = z.object({
   email: z.string().email({ message: "Invalid email address" }),
   password: z.string().min(6, { message: "Password must be at least 6 characters" }),
+  remember: z.boolean().optional(),
 });
-
 type LoginFormValues = z.infer<typeof loginSchema>;
 
 export default function LoginPage() {
   const { lang } = useApp();
   const t = translations[lang];
+  const router = useRouter();
+  const { signIn } = useAuth();
+  const [showPassword, setShowPassword] = useState(false);
+  const [authError, setAuthError] = useState<string | null>(null);
 
   const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
   });
 
   const onSubmit = async (data: LoginFormValues) => {
-    // Ready for Prisma/Supabase auth
-    console.log("Login data:", data);
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    setAuthError(null);
+    const { error } = await signIn(data.email, data.password);
+    if (error) {
+      setAuthError(error);
+    } else {
+      router.push('/');
+      router.refresh();
+    }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background text-foreground p-4">
-      <div className="w-full max-w-md p-8 rounded-3xl bg-card-bg border border-card-border shadow-2xl animate-fadeInUp">
-        <div className="flex justify-center mb-6 text-primary">
-          <Boxes className="w-12 h-12" />
+    <div className="min-h-screen flex bg-[#08080a] text-foreground">
+
+      {/* Left decorative panel */}
+      <div className="hidden lg:flex w-[45%] relative flex-col items-center justify-center p-16 overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-indigo-950/60 via-[#08080a] to-[#08080a]" />
+        <div className="absolute top-1/4 left-1/4 w-72 h-72 bg-indigo-600/20 rounded-full blur-3xl animate-blob" />
+        <div className="absolute bottom-1/4 right-1/4 w-64 h-64 bg-violet-600/15 rounded-full blur-3xl animate-blob animation-delay-2000" />
+        <div className="absolute inset-0 opacity-5" style={{ backgroundImage: 'radial-gradient(circle, #6366f1 1px, transparent 1px)', backgroundSize: '32px 32px' }} />
+        <div className="relative z-10 max-w-sm text-center">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-xs font-bold uppercase tracking-widest mb-8">
+            <ShieldCheck className="w-3.5 h-3.5" />
+            Secure Access
+          </div>
+          <h1 className="text-4xl font-black tracking-tighter leading-tight mb-4 text-white">
+            Welcome<br /><span className="text-indigo-400">back.</span>
+          </h1>
+          <p className="text-sm text-white/40 font-medium leading-relaxed">
+            Sign in to access your custom creations, track your orders, and continue designing.
+          </p>
+          <div className="mt-10 space-y-3 text-left">
+            {["AI-powered design studio", "Real-time order tracking", "Saved design library"].map((f) => (
+              <div key={f} className="flex items-center gap-3">
+                <div className="w-5 h-5 rounded-full bg-indigo-500/20 border border-indigo-500/30 flex items-center justify-center shrink-0">
+                  <Sparkles className="w-2.5 h-2.5 text-indigo-400" />
+                </div>
+                <span className="text-xs text-white/50 font-medium">{f}</span>
+              </div>
+            ))}
+          </div>
         </div>
-        <h2 className="text-3xl font-bold text-center mb-2">{t.loginTitle}</h2>
-        <p className="text-center text-foreground/70 mb-8">{t.loginSubtitle}</p>
+      </div>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium mb-1">{t.loginEmailLabel}</label>
-            <div className="relative">
-              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-foreground/50" />
-              <input 
-                {...register("email")}
-                type="email"
-                className="w-full pl-10 pr-4 py-3 rounded-xl bg-background border border-card-border focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
-                placeholder="you@example.com"
-              />
+      {/* Right form panel */}
+      <div className="flex-1 flex items-center justify-center p-6 lg:p-16">
+        <div className="w-full max-w-md">
+          <div className="flex lg:hidden items-center gap-2 mb-8">
+            <div className="w-8 h-8 rounded-xl bg-indigo-500/20 border border-indigo-500/30 flex items-center justify-center">
+              <Sparkles className="w-4 h-4 text-indigo-400" />
             </div>
-            {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email.message}</p>}
+            <span className="font-black text-sm tracking-tighter uppercase text-white/70">BI4K</span>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium mb-1">{t.loginPasswordLabel}</label>
-            <div className="relative">
-              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-foreground/50" />
-              <input 
-                {...register("password")}
-                type="password"
-                className="w-full pl-10 pr-4 py-3 rounded-xl bg-background border border-card-border focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
-                placeholder="••••••••"
-              />
-            </div>
-            {errors.password && <p className="text-red-500 text-sm mt-1">{errors.password.message}</p>}
-          </div>
+          <h2 className="text-3xl font-black tracking-tighter mb-1">{t.loginTitle}</h2>
+          <p className="text-sm text-foreground/50 mb-8">{t.loginSubtitle}</p>
 
-          <div className="flex items-center justify-between text-sm">
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input type="checkbox" className="rounded border-card-border text-primary focus:ring-primary bg-background" />
-              {t.loginRemember}
-            </label>
-            <Link href="#" className="text-primary hover:text-primary-hover font-medium">
-              {t.loginForgot}
+          <form id="login-form" onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+            {authError && (
+              <div className="p-4 rounded-2xl bg-rose-500/10 border border-rose-500/20 text-rose-400 text-sm font-medium">
+                {authError}
+              </div>
+            )}
+
+            {/* Email */}
+            <div className="space-y-1.5">
+              <label htmlFor="login-email" className="block text-xs font-bold uppercase tracking-widest text-foreground/50">
+                {t.loginEmailLabel}
+              </label>
+              <div className="relative">
+                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-foreground/30 pointer-events-none" />
+                <input
+                  id="login-email"
+                  {...register("email")}
+                  type="email"
+                  autoComplete="email"
+                  placeholder="you@example.com"
+                  className="w-full pl-11 pr-4 py-3.5 rounded-2xl bg-white/5 border border-white/10 focus:border-indigo-500/60 focus:bg-indigo-500/5 focus:ring-2 focus:ring-indigo-500/20 outline-none transition-all text-sm placeholder:text-foreground/20"
+                />
+              </div>
+              {errors.email && <p className="text-rose-400 text-xs mt-1 font-medium">{errors.email.message}</p>}
+            </div>
+
+            {/* Password */}
+            <div className="space-y-1.5">
+              <label htmlFor="login-password" className="block text-xs font-bold uppercase tracking-widest text-foreground/50">
+                {t.loginPasswordLabel}
+              </label>
+              <div className="relative">
+                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-foreground/30 pointer-events-none" />
+                <input
+                  id="login-password"
+                  {...register("password")}
+                  type={showPassword ? "text" : "password"}
+                  autoComplete="current-password"
+                  placeholder="••••••••"
+                  className="w-full pl-11 pr-12 py-3.5 rounded-2xl bg-white/5 border border-white/10 focus:border-indigo-500/60 focus:bg-indigo-500/5 focus:ring-2 focus:ring-indigo-500/20 outline-none transition-all text-sm placeholder:text-foreground/20"
+                />
+                <button
+                  type="button"
+                  id="login-toggle-password"
+                  onClick={() => setShowPassword((v) => !v)}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-foreground/30 hover:text-foreground/70 transition-colors"
+                >
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
+              {errors.password && <p className="text-rose-400 text-xs mt-1 font-medium">{errors.password.message}</p>}
+            </div>
+
+            {/* Remember / Forgot */}
+            <div className="flex items-center justify-between">
+              <label htmlFor="login-remember" className="flex items-center gap-2 cursor-pointer group">
+                <input
+                  id="login-remember"
+                  {...register("remember")}
+                  type="checkbox"
+                  className="w-4 h-4 rounded border-white/20 bg-white/5 text-indigo-500 focus:ring-indigo-500/30 focus:ring-offset-0"
+                />
+                <span className="text-xs text-foreground/50 group-hover:text-foreground/70 transition-colors font-medium">
+                  {t.loginRemember}
+                </span>
+              </label>
+              <Link href="#" id="login-forgot-link" className="text-xs text-indigo-400 hover:text-indigo-300 font-bold transition-colors">
+                {t.loginForgot}
+              </Link>
+            </div>
+
+            {/* Submit */}
+            <button
+              id="login-submit-btn"
+              type="submit"
+              disabled={isSubmitting}
+              className="w-full py-4 rounded-2xl font-black text-sm uppercase tracking-widest bg-indigo-600 hover:bg-indigo-500 text-white transition-all hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 flex items-center justify-center gap-3 shadow-xl shadow-indigo-500/20 mt-2"
+            >
+              {isSubmitting
+                ? <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                : <><LogIn className="w-4 h-4" />{t.loginBtn}</>
+              }
+            </button>
+          </form>
+
+          <p className="mt-8 text-center text-sm text-foreground/40">
+            {t.loginNoAccount}{" "}
+            <Link href="/signup" id="login-to-signup-link" className="text-indigo-400 font-bold hover:text-indigo-300 transition-colors">
+              {t.loginSignupLink}
+            </Link>
+          </p>
+          <div className="mt-4 text-center">
+            <Link href="/" id="login-back-home" className="text-xs text-foreground/30 hover:text-foreground/60 transition-colors">
+              ← Back to Home
             </Link>
           </div>
-
-          <button 
-            type="submit" 
-            disabled={isSubmitting}
-            className="w-full py-3 rounded-xl font-bold bg-primary text-white hover:bg-primary-hover transition-colors disabled:opacity-70 flex justify-center items-center"
-          >
-            {isSubmitting ? "..." : t.loginBtn}
-          </button>
-        </form>
-
-        <div className="mt-6 text-center text-sm text-foreground/70">
-          {t.loginNoAccount}{" "}
-          <Link href="/signup" className="text-primary font-bold hover:underline">
-            {t.loginSignupLink}
-          </Link>
-        </div>
-        
-        <div className="mt-8 text-center text-sm">
-          <Link href="/" className="text-foreground/50 hover:text-foreground">
-            &larr; Back to Home
-          </Link>
         </div>
       </div>
     </div>
