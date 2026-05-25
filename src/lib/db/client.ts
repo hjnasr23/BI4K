@@ -8,7 +8,6 @@
 import { createClient }            from '@supabase/supabase-js';
 import { createBrowserClient }     from '@supabase/ssr';
 import { createServerClient }      from '@supabase/ssr';
-import { cookies }                 from 'next/headers';
 import type { Database }           from './types';
 
 const SUPABASE_URL      = process.env.NEXT_PUBLIC_SUPABASE_URL!;
@@ -33,6 +32,7 @@ export function browserClient() {
 // ── 2. Server client (per-request, reads cookies for auth) ────
 // Use in Server Components, Route Handlers, and Server Actions.
 export async function serverClient() {
+  const { cookies } = await import('next/headers');
   const cookieStore = await cookies();
   return createServerClient<Database>(SUPABASE_URL, SUPABASE_ANON_KEY, {
     cookies: {

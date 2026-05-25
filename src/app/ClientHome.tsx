@@ -146,7 +146,7 @@ export default function ClientHome({ categories, products }: { categories: Categ
                       )}
                     </div>
                     <h3 className="font-bold text-white text-sm mb-1">{prod.name}</h3>
-                    <p className="text-primary font-black text-xs">${prod.base_price}</p>
+                    <p className="text-primary font-black text-xs">{prod.base_price} MAD</p>
                   </Link>
                 ))}
              </div>

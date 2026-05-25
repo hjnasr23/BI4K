@@ -15,9 +15,9 @@ const db = () =>
 // ── GET ───────────────────────────────────────────────────────
 export async function GET() {
   const { data, error } = await db()
-    .from('Category')
+    .from('categories')
     .select('*')
-    .order('created_at', { ascending: false });
+    .order('created_at', { ascending: true });
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   return NextResponse.json({ data });
@@ -26,15 +26,17 @@ export async function GET() {
 // ── POST ──────────────────────────────────────────────────────
 export async function POST(req: NextRequest) {
   const body = await req.json();
-  const { name, image_url } = body;
+  const { name, slug, image_url } = body;
 
   if (!name?.trim()) {
     return NextResponse.json({ error: 'Category name is required.' }, { status: 400 });
   }
 
+  const categorySlug = slug?.trim() || name.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+
   const { data, error } = await db()
-    .from('Category')
-    .insert({ name: name.trim(), image_url: image_url?.trim() || null })
+    .from('categories')
+    .insert({ name: name.trim(), slug: categorySlug, image_url: image_url?.trim() || null })
     .select()
     .single();
 

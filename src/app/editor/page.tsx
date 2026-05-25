@@ -1,7 +1,7 @@
 'use client';
 
 import dynamic from 'next/dynamic';
-const TShirtEditor = dynamic(() => import("@/components/TShirtEditor"), { ssr: false });
+const TShirtEditor = dynamic(() => import("@/components/ProductEditor"), { ssr: false });
 import { Suspense } from "react";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";

@@ -3,7 +3,7 @@ import type { NextRequest } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
 // ── Routes that require a logged-in user ──────────────────────
-const USER_PROTECTED = ['/orders', '/profile', '/designs', '/cart', '/checkout'];
+const USER_PROTECTED = ['/orders', '/profile', '/designs'];
 
 // ── Admin routes ──────────────────────────────────────────────
 async function handleAdmin(request: NextRequest): Promise<NextResponse> {
@@ -84,7 +84,5 @@ export const config = {
     '/orders/:path*',
     '/profile/:path*',
     '/designs/:path*',
-    '/cart/:path*',
-    '/checkout/:path*',
   ],
 };

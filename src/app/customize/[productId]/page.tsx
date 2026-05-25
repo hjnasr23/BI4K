@@ -10,7 +10,7 @@ export default function ChoicePage() {
   const { lang } = useApp();
   const params = useParams();
   const searchParams = useSearchParams();
-  
+
   const productId = params.productId as string;
   const mockupUrl = searchParams.get('mockupUrl') || '';
 
@@ -18,8 +18,8 @@ export default function ChoicePage() {
     {
       id: 'ai',
       title: lang === 'fr' ? 'Studio IA' : 'AI Magic Studio',
-      desc: lang === 'fr' 
-        ? 'Laissez notre intelligence artificielle transformer vos mots en designs spectaculaires.' 
+      desc: lang === 'fr'
+        ? 'Laissez notre intelligence artificielle transformer vos mots en designs spectaculaires.'
         : 'Let our artificial intelligence transform your words into spectacular designs.',
       icon: Sparkles,
       color: 'bg-primary',
@@ -47,8 +47,8 @@ export default function ChoicePage() {
       <main className="container mx-auto px-4 pt-32 pb-16 flex-grow flex flex-col items-center justify-center relative z-10">
         {/* Animated Background Blobs */}
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full pointer-events-none opacity-20">
-           <div className="absolute top-10 left-10 w-96 h-96 bg-primary/30 rounded-full blur-[100px] animate-blob" />
-           <div className="absolute bottom-10 right-10 w-96 h-96 bg-accent/30 rounded-full blur-[100px] animate-blob animation-delay-2000" />
+          <div className="absolute top-10 left-10 w-96 h-96 bg-primary/30 rounded-full blur-[100px] animate-blob" />
+          <div className="absolute bottom-10 right-10 w-96 h-96 bg-accent/30 rounded-full blur-[100px] animate-blob animation-delay-2000" />
         </div>
 
         <div className="text-center mb-20 max-w-3xl animate-reveal">
@@ -58,8 +58,8 @@ export default function ChoicePage() {
           </div>
 
           <p className="text-xl text-foreground/50 font-medium leading-relaxed max-w-2xl mx-auto">
-            {lang === 'fr' 
-              ? 'Choisissez comment vous souhaitez donner vie à votre vision créative.' 
+            {lang === 'fr'
+              ? 'Choisissez comment vous souhaitez donner vie à votre vision créative.'
               : 'Choose how you want to bring your creative vision to life.'}
           </p>
         </div>
@@ -68,14 +68,14 @@ export default function ChoicePage() {
           {options.map((option) => {
             const Icon = option.icon;
             return (
-              <Link 
+              <Link
                 key={option.id}
                 href={option.link}
                 className="group relative overflow-hidden rounded-[3rem] bg-card-bg border border-card-border p-12 hover:border-primary/50 transition-all duration-500 hover:scale-[1.02] hover:shadow-[0_40px_80px_rgba(0,0,0,0.4)] shadow-2xl"
               >
                 {/* Glow Overlay */}
                 <div className={`absolute inset-0 bg-gradient-to-br ${option.id === 'ai' ? 'from-primary/10' : 'from-secondary/10'} to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700`} />
-                
+
                 {option.badge && (
                   <div className="absolute top-8 right-8 px-4 py-2 rounded-xl bg-primary text-white text-[10px] font-black uppercase tracking-widest shadow-xl shadow-primary/20 rotate-3 group-hover:rotate-0 transition-transform">
                     {option.badge}
@@ -85,12 +85,12 @@ export default function ChoicePage() {
                 <div className={`w-20 h-20 rounded-[1.5rem] ${option.color}/20 flex items-center justify-center mb-10 group-hover:rotate-6 transition-transform duration-500 shadow-inner`}>
                   <Icon className={`w-10 h-10 ${option.accent} group-hover:scale-110 transition-transform`} />
                 </div>
-                
+
                 <h2 className="text-4xl font-black mb-6 flex items-center gap-4 tracking-tighter">
                   {option.title}
                   <ArrowRight className="w-8 h-8 opacity-0 -translate-x-6 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-500 text-primary" />
                 </h2>
-                
+
                 <p className="text-xl text-foreground/50 font-medium leading-relaxed mb-10 max-w-sm">
                   {option.desc}
                 </p>
@@ -108,7 +108,7 @@ export default function ChoicePage() {
             );
           })}
         </div>
-        
+
         <Link href="/categories/tshirts" className="mt-20 group flex items-center gap-3 text-xs font-black uppercase tracking-[0.3em] text-foreground/30 hover:text-primary transition-colors">
           <div className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center group-hover:-translate-x-1 transition-transform">
             &larr;

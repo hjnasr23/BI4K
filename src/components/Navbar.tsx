@@ -6,6 +6,7 @@ import { Sun, Moon, Globe, Boxes, ShoppingCart, User as UserIcon, LogOut } from 
 import { createClient } from "@/lib/supabase/client";
 import { useState, useEffect } from "react";
 import { Clipboard } from "lucide-react";
+import { useCartStore } from "@/lib/store/cartStore";
 
 export function Navbar() {
   const { lang, setLang, theme, setTheme, user, setIsAuthModalOpen } = useApp();
@@ -13,6 +14,15 @@ export function Navbar() {
   const supabase = createClient();
   const [scrolled, setScrolled] = useState(false);
   const [isVisible, setIsVisible] = useState(true);
+
+  // Dynamic Zustand Cart count
+  const [mounted, setMounted] = useState(false);
+  const items = useCartStore((state) => state.items);
+  const cartCount = items.reduce((acc, item) => acc + item.quantity, 0);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     let hideTimer: NodeJS.Timeout;
@@ -100,16 +110,18 @@ export function Navbar() {
 
             <div className="w-px h-6 bg-card-border mx-2" />
 
-            <button
-              disabled
-              className="relative p-2.5 rounded-xl cursor-not-allowed opacity-50 group"
-              title="Cart feature coming soon"
+            <Link
+              href="/cart"
+              className="relative p-2.5 rounded-xl group hover:bg-card-bg transition-colors"
+              title="Shopping Cart"
             >
               <ShoppingCart className="w-5 h-5 text-foreground/70 group-hover:text-primary transition-colors" />
-              <span className="absolute -top-1 -right-1 w-5 h-5 bg-accent text-white text-[10px] flex items-center justify-center rounded-full font-black shadow-lg border-2 border-background">
-                0
-              </span>
-            </button>
+              {mounted && cartCount > 0 && (
+                <span className="absolute -top-1 -right-1 w-5 h-5 bg-accent text-white text-[10px] flex items-center justify-center rounded-full font-black shadow-lg border-2 border-background">
+                  {cartCount}
+                </span>
+              )}
+            </Link>
 
             <div className="flex gap-2 items-center ml-2">
               {user ? (
