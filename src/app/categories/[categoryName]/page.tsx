@@ -154,13 +154,13 @@ const ProductCard = ({ product, lang }: { product: Product; lang: string }) => {
 };
 
 /* ─────────── Main CategoryDetailsPage Component ─────────── */
-export default function CategoryDetailsPage({ params }: { params?: { categoryName?: string; slug?: string } }) {
+export default function CategoryDetailsPage() {
   const { lang } = useApp();
   const t = translations[lang];
   const pathname = usePathname();
   
   const categorySlug = pathname.split('/').pop() || '';
-  const resolvedSlug = params?.slug || params?.categoryName || categorySlug;
+  const resolvedSlug = categorySlug;
 
   const [products, setProducts] = useState<Product[]>([]);
   const [categoryName, setCategoryName] = useState('');

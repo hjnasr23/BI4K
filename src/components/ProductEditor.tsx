@@ -13,23 +13,9 @@ import {
   Wand2,
   ShoppingCart,
   ArrowRight,
-  MousePointer2,
-  RotateCcw,
   Loader2,
-  Maximize2,
   Terminal,
-  Sliders,
-  Eye,
-  Undo2,
-  Redo2,
   Trash2,
-  Copy,
-  Type,
-  AlignCenter,
-  AlignLeft,
-  AlignRight,
-  FlipHorizontal,
-  ChevronDown
 } from "lucide-react";
 
 interface StudioLog {
@@ -91,6 +77,9 @@ export default function TShirtEditor() {
   // Cart Actions
   const addToCart = useCartStore((state) => state.addToCart);
   const [showToast, setShowToast] = useState(false);
+
+  // Pending image URL — queued when AI finishes before canvas is ready
+  const [pendingImageUrl, setPendingImageUrl] = useState<string | null>(null);
 
   // Fetch product from Supabase using productId
   useEffect(() => {
@@ -162,6 +151,15 @@ export default function TShirtEditor() {
     addLogRef.current = addLog;
   }, [addLog]);
 
+  // Load pending AI image once the canvas becomes available (queued path)
+  useEffect(() => {
+    if (!fabricCanvas || !pendingImageUrl) return;
+    applyImageToCanvas(pendingImageUrl, fabricCanvas);
+    setPendingImageUrl(null);
+  // applyImageToCanvas is stable (useCallback with [] deps)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [fabricCanvas, pendingImageUrl]);
+
   useEffect(() => {
     if (fabricRef.current) return; // Already initialized — survive Strict Mode double-mount
 
@@ -184,14 +182,10 @@ export default function TShirtEditor() {
     setFabricCanvas(canvas);
     console.log('[Fabric] Canvas initialized successfully. fabricRef.current =', fabricRef.current);
 
-    const clipRect = new fabric.Rect({
-      left: 150,
-      top: 150,
-      width: 200,
-      height: 200,
-      absolutePositioned: true
-    });
-    canvas.clipPath = clipRect;
+    // No canvas-level clipPath — it was clipping images to an invisible 200×200 box
+    // and making dragged objects disappear. The dashed print-zone guide in the JSX
+    // provides the visual boundary hint without enforcing it programmatically.
+    canvas.clipPath = undefined;
 
     fabric.Object.prototype.set({
       transparentCorners: false,
@@ -254,6 +248,42 @@ export default function TShirtEditor() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // ─── Shared helper: paint an image URL onto the canvas ──────────────────────
+  // • multiply blend makes white AI backgrounds transparent against fabric texture
+  // • all lock flags are cleared so the user can freely move / scale / rotate
+  const applyImageToCanvas = useCallback((imageUrl: string, canvas: fabric.Canvas) => {
+    fabric.Image.fromURL(imageUrl, { crossOrigin: "anonymous" }).then((img) => {
+      img.set({
+        // Blend mode — white pixels become transparent against the shirt
+        globalCompositeOperation: 'multiply',
+        // Unlock every transform axis
+        lockMovementX: false,
+        lockMovementY: false,
+        lockScalingX: false,
+        lockScalingY: false,
+        lockRotation: false,
+        // Make sure all control handles are visible
+        hasControls: true,
+        hasBorders: true,
+        selectable: true,
+        evented: true,
+      });
+      // Scale to a comfortable starting size and center on canvas
+      img.scaleToWidth(220);
+      canvas.centerObject(img);
+      canvas.add(img);
+      canvas.bringObjectToFront(img);
+      canvas.setActiveObject(img);
+      canvas.renderAll();
+      saveHistoryRef.current();
+      addLogRef.current("AI design materialized ✓", "success");
+    }).catch((err: any) => {
+      console.error("Fabric Rendering Error:", err);
+      addLogRef.current("Failed to paint AI image on canvas", "error");
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const addText = () => {
     if (!fabricRef.current) { console.error('addText: fabricRef.current is null'); return; }
     const canvas = fabricRef.current;
@@ -273,41 +303,42 @@ export default function TShirtEditor() {
   };
 
   // ==========================================================
-  // FREE AI GENERATION — Pollinations.ai (No API key required)
+  // SECURE CLOUDFLARE AI GENERATION — Stable Diffusion XL
   // ==========================================================
-  const generateWithPollinations = async (): Promise<void> => {
+  const generateWithCloudflareAI = async (): Promise<void> => {
     if (!prompt.trim()) return;
 
     setIsGenerating(true);
     setGenerationProgress(0);
-    addLog(`Vision Engine: processing prompt...`, "ai");
+    addLog(`Vision Engine (Cloudflare AI): processing prompt...`, "ai");
 
-    // Simulate progress while image loads
+    // Simulate progress while image generates
     const progressInterval = setInterval(() => {
       setGenerationProgress(prev => {
         if (prev >= 90) { clearInterval(progressInterval); return 90; }
-        return prev + Math.random() * 12;
+        return prev + Math.random() * 8;
       });
-    }, 400);
+    }, 300);
 
     try {
       // Append apparel-optimized keywords to user prompt
       const enhancedPrompt = `${prompt.trim()}, vector art, t-shirt design, isolated on pure white background, clean edges, no background noise, high contrast, print ready`;
-      const encodedPrompt = encodeURIComponent(enhancedPrompt);
-      // Add a cache-busting seed to avoid stale CDN results
-      const seed = Math.floor(Math.random() * 999999);
-      const imageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=512&height=512&nologo=true&seed=${seed}`;
 
-      addLog(`Requesting Pollinations AI (seed: ${seed})...`, "ai");
-
-      // Pre-load the image using a JS Image() object
-      await new Promise<void>((resolve, reject) => {
-        const img = new Image();
-        img.crossOrigin = "anonymous";
-        img.onload = () => resolve();
-        img.onerror = () => reject(new Error("Failed to load image from Pollinations"));
-        img.src = imageUrl;
+      const response = await fetch('/api/generate-image', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ prompt: enhancedPrompt }),
       });
+
+      if (!response.ok) {
+        const errJson = await response.json().catch(() => ({}));
+        throw new Error(errJson.error || `Generation failed: ${response.statusText}`);
+      }
+
+      const blob = await response.blob();
+      const imageUrl = URL.createObjectURL(blob);
 
       clearInterval(progressInterval);
       setGenerationProgress(100);
@@ -316,34 +347,23 @@ export default function TShirtEditor() {
       setLastGeneratedUrl(imageUrl);
 
       if (!fabricRef.current) {
-        console.error('generateWithPollinations: fabricRef.current is null');
-        addLog('Canvas not ready — please wait and retry.', 'error');
+        console.warn('generateWithCloudflareAI: fabricRef.current is null — queuing image for later render');
+        addLog('Canvas initializing — design queued for rendering.', 'system');
+        setPendingImageUrl(imageUrl);
         setIsGenerating(false);
-        setGenerationProgress(0);
+        setTimeout(() => setGenerationProgress(0), 1500);
         return;
       }
 
       const canvas = fabricRef.current;
-      fabric.Image.fromURL(imageUrl, { crossOrigin: "anonymous" }).then((img) => {
-        img.scaleToWidth(200);
-        canvas.centerObject(img);
-        canvas.add(img);
-        canvas.bringObjectToFront(img);
-        canvas.setActiveObject(img);
-        canvas.renderAll();
-        saveHistoryRef.current();
-        addLogRef.current("AI design materialized ✓", "success");
-      }).catch((err: any) => {
-        console.error("Fabric Rendering Error:", err);
-        addLogRef.current("Failed to paint AI image on canvas", "error");
-      });
+      applyImageToCanvas(imageUrl, canvas);
 
       setIsGenerating(false);
       // Reset progress after a brief moment
       setTimeout(() => setGenerationProgress(0), 1500);
     } catch (err: any) {
       clearInterval(progressInterval);
-      console.error('Pollinations fetch failed:', err);
+      console.error('Cloudflare Workers AI generation failed:', err);
       addLog(`Error: ${err.message}`, "error");
       setIsGenerating(false);
       setGenerationProgress(0);
@@ -432,87 +452,66 @@ export default function TShirtEditor() {
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
 
-  if (!mounted) return null;
+  // IMPORTANT: Do NOT return null before mounted — the <canvas> element must
+  // always be in the DOM so the Fabric initialization useEffect can find it.
+  // We use `opacity-0 pointer-events-none` to hide the UI visually instead.
 
   return (
-    <div className="flex flex-col lg:flex-row gap-6 lg:h-[calc(100vh-180px)] lg:min-h-[700px] animate-reveal">
-      <div className="flex-grow relative group flex flex-col min-w-0 min-h-[500px]">
-        <div className="absolute top-6 left-6 z-30 flex flex-col gap-2">
+    <div className={`flex flex-col lg:flex-row gap-6 lg:h-[calc(100vh-180px)] lg:min-h-[700px] animate-reveal transition-opacity duration-300 ${mounted ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
+      {/* ── Left: Canvas Area ───────────────────────────────── */}
+      <div className="flex-grow relative flex flex-col min-w-0 min-h-[500px]">
+
+        {/* Floating trash button — top-right of canvas */}
+        <div className="absolute top-4 right-4 z-30">
           <motion.button
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.9 }}
-            title="Select Tool"
-            className="w-12 h-12 rounded-2xl bg-black/80 backdrop-blur-xl border border-white/10 flex items-center justify-center text-brand-blue shadow-2xl transition-all"
-          >
-            <MousePointer2 className="w-5 h-5" />
-          </motion.button>
-          <div className="w-12 h-px bg-white/10 my-1" />
-          <motion.button
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.9 }}
-            onClick={() => { fabricRef.current?.discardActiveObject(); fabricRef.current?.renderAll(); }}
-            title="Deselect"
-            className="w-12 h-12 rounded-2xl bg-black/40 backdrop-blur-xl border border-white/5 flex items-center justify-center text-foreground/40 hover:bg-black/60 transition-all"
-          >
-            <AlignLeft className="w-5 h-5 rotate-90" />
-          </motion.button>
-          <motion.button
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.9 }}
-            onClick={() => {
-              const active = fabricRef.current?.getActiveObject();
-              if (active) { active.flipX = !active.flipX; fabricRef.current?.renderAll(); saveHistory(); }
-            }}
-            title="Flip Horizontal"
-            className="w-12 h-12 rounded-2xl bg-black/40 backdrop-blur-xl border border-white/5 flex items-center justify-center text-foreground/40 hover:bg-black/60 transition-all"
-          >
-            <FlipHorizontal className="w-5 h-5" />
-          </motion.button>
-          <motion.button
-            whileHover={{ scale: 1.1, backgroundColor: "rgba(239, 68, 68, 0.2)" }}
-            whileTap={{ scale: 0.9 }}
+            whileHover={{ scale: 1.08, backgroundColor: 'rgba(239,68,68,0.18)' }}
+            whileTap={{ scale: 0.92 }}
             onClick={() => {
               const active = fabricRef.current?.getActiveObject();
               if (active) { fabricRef.current?.remove(active); fabricRef.current?.discardActiveObject(); saveHistory(); }
             }}
-            title="Delete"
-            className="w-12 h-12 rounded-2xl bg-black/40 backdrop-blur-xl border border-white/5 flex items-center justify-center text-accent/60 transition-all"
+            title="Supprimer l'élément sélectionné"
+            className="w-10 h-10 rounded-xl bg-black/60 backdrop-blur-xl border border-white/10 flex items-center justify-center text-red-400/70 hover:text-red-400 shadow-xl transition-all"
           >
-            <Trash2 className="w-5 h-5" />
+            <Trash2 className="w-4 h-4" />
           </motion.button>
         </div>
 
-        <div className="flex-grow glass rounded-[3.5rem] p-1 border-white/5 shadow-2xl overflow-hidden relative flex items-center justify-center bg-background/40">
-          <div className="absolute inset-0 opacity-[0.05] pointer-events-none" style={{ backgroundImage: 'radial-gradient(circle, currentColor 1px, transparent 1px)', backgroundSize: '40px 40px' }} />
+        <div className="flex-grow bg-[#0d0d0f] rounded-2xl border border-white/8 shadow-2xl overflow-hidden relative flex items-center justify-center">
+          <div className="absolute inset-0 opacity-[0.04] pointer-events-none" style={{ backgroundImage: 'radial-gradient(circle, currentColor 1px, transparent 1px)', backgroundSize: '36px 36px' }} />
           <motion.div
             id="product-preview-container"
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
-            className="relative shadow-[0_50px_100px_rgba(0,0,0,0.5)] rounded-2xl overflow-hidden ring-1 ring-white/10 bg-black"
+            className="relative shadow-[0_40px_80px_rgba(0,0,0,0.6)] rounded-2xl overflow-hidden ring-1 ring-white/10 bg-black"
             style={{ width: 500, height: 500 }}
           >
             <img src={mockupUrl} alt="Backdrop" className="absolute inset-0 w-full h-full object-cover z-0 pointer-events-none" />
-            <div className="absolute border border-dashed border-brand-blue/40 pointer-events-none rounded-xl z-20" style={{ left: 150, top: 150, width: 200, height: 200 }}>
-              <div className="absolute -top-1 -left-1 w-2 h-2 bg-brand-blue/60 rounded-full" />
-              <div className="absolute -top-1 -right-1 w-2 h-2 bg-brand-blue/60 rounded-full" />
-              <div className="absolute -bottom-1 -left-1 w-2 h-2 bg-brand-blue/60 rounded-full" />
-              <div className="absolute -bottom-1 -right-1 w-2 h-2 bg-brand-blue/60 rounded-full" />
+            {/* Dashed print-zone guide — visual hint only */}
+            <div className="absolute border border-dashed border-brand-blue/35 pointer-events-none rounded-xl z-20" style={{ left: 125, top: 100, width: 250, height: 280 }}>
+              <div className="absolute -top-1 -left-1 w-2 h-2 bg-brand-blue/50 rounded-full" />
+              <div className="absolute -top-1 -right-1 w-2 h-2 bg-brand-blue/50 rounded-full" />
+              <div className="absolute -bottom-1 -left-1 w-2 h-2 bg-brand-blue/50 rounded-full" />
+              <div className="absolute -bottom-1 -right-1 w-2 h-2 bg-brand-blue/50 rounded-full" />
+              <span className="absolute -top-5 left-1/2 -translate-x-1/2 text-[8px] font-black uppercase tracking-widest text-brand-blue/40 whitespace-nowrap">Zone d&apos;impression</span>
             </div>
-            {/* mix-blend-multiply makes white AI backgrounds disappear into the product */}
-            <canvas id="main-fabric-canvas" width={500} height={500} className="absolute inset-0 z-10 mix-blend-multiply" />
+            <canvas id="main-fabric-canvas" width={500} height={500} className="absolute inset-0 z-10" />
           </motion.div>
         </div>
       </div>
 
-      <div className="w-full lg:w-[450px] flex flex-col gap-4 overflow-y-auto pr-2 scrollbar-thin">
+      {/* ── Right: Control Panel ─────────────────────────────── */}
+      <div className="w-full lg:w-[420px] flex flex-col gap-5 overflow-y-auto scrollbar-thin">
+
+        {/* ── Vision Engine Card ─── */}
         <motion.div
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
-          className="glass rounded-[2.5rem] border-white/5 p-8 relative overflow-hidden group"
+          className="relative bg-[#121212] border border-white/10 rounded-xl shadow-lg p-5 overflow-hidden"
         >
-          {/* Progress bar overlay */}
+          {/* Progress bar */}
           {generationProgress > 0 && (
-            <div className="absolute top-0 left-0 right-0 h-1 bg-black/20 z-10 overflow-hidden rounded-t-[2.5rem]">
+            <div className="absolute top-0 left-0 right-0 h-[3px] bg-white/5 overflow-hidden rounded-t-xl">
               <motion.div
                 className="h-full bg-gradient-to-r from-brand-blue via-brand-yellow to-brand-blue"
                 initial={{ width: '0%' }}
@@ -522,121 +521,123 @@ export default function TShirtEditor() {
             </div>
           )}
 
-          <div className="flex items-center justify-between mb-6">
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-brand-blue/10 border border-brand-blue/20 text-brand-blue text-[10px] font-black uppercase tracking-widest"><Sparkles className="w-3 h-3" /> Vision Engine</div>
+          {/* Header */}
+          <div className="flex items-center justify-between mb-4">
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-brand-blue/10 border border-brand-blue/20 text-brand-blue text-[10px] font-black uppercase tracking-widest">
+              <Sparkles className="w-3 h-3" /> Vision Engine
+            </div>
             <div className="flex items-center gap-2">
-              <span className="text-[8px] font-black uppercase tracking-widest text-emerald-400/60">Free · No API Key</span>
-              <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+              <span className="text-[8px] font-black uppercase tracking-widest text-white/30">Cloudflare SDXL</span>
+              <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
             </div>
           </div>
+
+          {/* Prompt textarea */}
           <textarea
-            className="w-full h-24 p-5 text-foreground bg-black/40 border border-white/5 rounded-2xl outline-none resize-none transition-all font-medium text-sm mb-3 focus:border-brand-blue/40 placeholder:text-foreground/20"
-            placeholder="Décrivez votre design (ex: 'Un dragon japonais en style encre, minimaliste' / 'A retro sunset with palm trees and neon vibes')" 
-            value={prompt} 
+            className="w-full h-28 px-4 py-3 text-sm text-white/90 bg-black/50 border border-white/20 rounded-lg outline-none resize-none transition-all placeholder:text-white/25 focus:border-brand-blue focus:ring-1 focus:ring-brand-blue"
+            placeholder="Décrivez votre design… ex: 'Dragon japonais en style encre, minimaliste sur fond blanc'"
+            value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
-            onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey && prompt.trim()) { e.preventDefault(); generateWithPollinations(); } }}
+            onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey && prompt.trim()) { e.preventDefault(); generateWithCloudflareAI(); } }}
           />
-          <p className="text-[8px] font-bold text-foreground/20 uppercase tracking-wider mb-4">Les mots-clés "vector art, t-shirt design, isolated" sont ajoutés automatiquement</p>
+          <p className="text-[9px] text-white/25 mt-1.5 mb-4 leading-relaxed">
+            Les mots-clés <span className="text-white/40">vector art · t-shirt design · isolated</span> sont ajoutés automatiquement.
+          </p>
+
+          {/* Generate button */}
           <motion.button
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            onClick={() => generateWithPollinations()}
+            whileHover={{ scale: 1.02, boxShadow: '0 8px 32px rgba(74,144,226,0.35)' }}
+            whileTap={{ scale: 0.97 }}
+            onClick={() => generateWithCloudflareAI()}
             disabled={isGenerating || !prompt.trim()}
-            className={`w-full py-4 rounded-xl font-black text-xs uppercase shadow-2xl transition-all flex items-center justify-center gap-3 ${
-              isGenerating 
-                ? 'bg-brand-blue/60 text-white/80 cursor-wait' 
-                : !prompt.trim() 
-                  ? 'bg-white/5 text-foreground/20 cursor-not-allowed'
-                  : 'bg-brand-blue text-white hover:shadow-brand-blue/30'
+            className={`w-full py-3 rounded-lg font-bold text-sm tracking-wide transition-all flex items-center justify-center gap-2 ${
+              isGenerating
+                ? 'bg-brand-blue/50 text-white/70 cursor-wait'
+                : !prompt.trim()
+                ? 'bg-white/5 text-white/20 cursor-not-allowed border border-white/10'
+                : 'bg-brand-blue text-white hover:bg-brand-blue/90 shadow-lg shadow-brand-blue/20'
             }`}
           >
             {isGenerating ? (
-              <><Loader2 className="w-4 h-4 animate-spin" /> Génération en cours ({Math.round(generationProgress)}%)...</>
+              <><Loader2 className="w-4 h-4 animate-spin" /> Génération… {Math.round(generationProgress)}%</>
             ) : (
-              <><Wand2 className="w-4 h-4" /> Générer avec l&apos;IA</>
+              <><Wand2 className="w-4 h-4" /> ✨ GÉNÉRER LE DESIGN</>
             )}
           </motion.button>
         </motion.div>
 
+        {/* ── Studio Log Card ─── */}
         <motion.div
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.1 }}
-          className="glass rounded-[2.5rem] border-white/5 p-8 relative overflow-hidden group"
+          className="bg-[#121212] border border-white/10 rounded-xl shadow-lg p-5 h-36 flex flex-col overflow-hidden"
         >
-          <div className="flex items-center justify-between mb-6">
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-brand-yellow/10 border border-brand-yellow/20 text-brand-yellow text-[10px] font-black uppercase tracking-widest"><Type className="w-3 h-3" /> Typography</div>
+          <div className="flex items-center gap-2 mb-3 border-b border-white/8 pb-2.5">
+            <Terminal className="w-3.5 h-3.5 text-brand-blue" />
+            <span className="text-[9px] font-black uppercase tracking-[0.35em] text-white/30">Studio Log</span>
           </div>
-          <div className="grid grid-cols-2 gap-4 mb-4">
-            <div className="relative group/font">
-              <select value={fontFamily} onChange={(e) => setFontFamily(e.target.value)} className="w-full bg-black/40 border border-white/5 p-3 rounded-xl text-xs font-bold outline-none appearance-none cursor-pointer hover:bg-black/60 transition-colors">
-                {GOOGLE_FONTS.map(f => <option key={f} value={f} style={{ fontFamily: f }}>{f}</option>)}
-              </select>
-              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-3 h-3 opacity-20" />
-            </div>
-            <input type="color" value={textColor} onChange={(e) => setTextColor(e.target.value)} className="w-full h-full bg-black/40 border border-white/5 rounded-xl cursor-pointer hover:bg-black/60 transition-colors" />
-          </div>
-          <motion.button
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            onClick={addText}
-            className="w-full py-3 rounded-xl border border-white/10 text-[10px] font-black uppercase tracking-widest hover:bg-white/5 transition-all"
-          >
-            Add Text Layer
-          </motion.button>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.2 }}
-          className="glass rounded-[2rem] border-white/5 p-6 bg-black/40 h-40 flex flex-col overflow-hidden"
-        >
-          <div className="flex items-center gap-2 mb-4 border-b border-white/5 pb-3"><Terminal className="w-3 h-3 text-brand-blue" /><span className="text-[8px] font-black uppercase tracking-[0.4em] text-foreground/40">Studio Log</span></div>
-          <div className="flex-grow overflow-y-auto space-y-2 pr-2">
+          <div className="flex-grow overflow-y-auto space-y-1.5">
             <AnimatePresence initial={false}>
+              {studioLogs.length === 0 && (
+                <p className="text-[9px] text-white/20 font-mono italic">En attente d&apos;activité…</p>
+              )}
               {studioLogs.map(log => (
                 <motion.div
                   key={log.id}
-                  initial={{ opacity: 0, x: -10 }}
+                  initial={{ opacity: 0, x: -8 }}
                   animate={{ opacity: 1, x: 0 }}
                   className="flex gap-3 text-[9px] font-mono"
                 >
-                  <span className="text-foreground/20">[{log.time}]</span>
-                  <span className={log.type === 'success' ? 'text-green-500' : log.type === 'ai' ? 'text-brand-blue' : 'text-foreground/40'}>{log.message}</span>
+                  <span className="text-white/20 flex-shrink-0">[{log.time}]</span>
+                  <span className={`truncate ${
+                    log.type === 'success' ? 'text-emerald-400' :
+                    log.type === 'error'   ? 'text-red-400' :
+                    log.type === 'ai'      ? 'text-brand-blue' :
+                                            'text-white/35'
+                  }`}>{log.message}</span>
                 </motion.div>
               ))}
             </AnimatePresence>
           </div>
         </motion.div>
 
-        {/* Quantity Controls */}
-        <div className="space-y-3 mb-4 border-t border-white/5 pt-4">
-          <label className="text-[9px] font-black uppercase tracking-[0.2em] text-foreground/40">Total Quantity</label>
-          <div className="flex items-center gap-4 bg-white/5 border border-white/5 rounded-2xl p-1.5">
-            <button onClick={() => setQuantity(q => Math.max(1, q - 1))} className="w-9 h-9 rounded-xl hover:bg-white/10 flex items-center justify-center transition-colors font-bold text-sm">-</button>
-            <span className="flex-grow text-center font-black text-xs">{quantity}</span>
-            <button onClick={() => setQuantity(q => q + 1)} className="w-9 h-9 rounded-xl hover:bg-white/10 flex items-center justify-center transition-colors font-bold text-sm">+</button>
-          </div>
-        </div>
+        {/* ── Order Summary Card ─── */}
+        <motion.div
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.2 }}
+          className="bg-[#121212] border border-white/10 rounded-xl shadow-lg p-5"
+        >
+          <p className="text-[9px] font-black uppercase tracking-[0.35em] text-white/30 mb-4">Résumé de commande</p>
 
-        {/* Pricing Summary */}
-        <div className="pt-4 border-t border-white/5 mb-6">
-          <div className="flex justify-between items-end">
-            <p className="text-[9px] font-black uppercase tracking-[0.4em] text-foreground/20">Final Amount</p>
-            <p className="text-2xl font-black tracking-tighter text-brand-yellow">{currentPrice * quantity} MAD</p>
+          {/* Quantity */}
+          <div className="flex items-center justify-between mb-4">
+            <span className="text-xs text-white/50 font-medium">Quantité</span>
+            <div className="flex items-center gap-2 bg-white/5 border border-white/10 rounded-lg p-1">
+              <button onClick={() => setQuantity(q => Math.max(1, q - 1))} className="w-7 h-7 rounded-md hover:bg-white/10 flex items-center justify-center transition-colors font-bold text-sm text-white/80">−</button>
+              <span className="w-8 text-center font-black text-sm text-white">{quantity}</span>
+              <button onClick={() => setQuantity(q => q + 1)} className="w-7 h-7 rounded-md hover:bg-white/10 flex items-center justify-center transition-colors font-bold text-sm text-white/80">+</button>
+            </div>
           </div>
-        </div>
 
+          {/* Price */}
+          <div className="flex items-baseline justify-between border-t border-white/8 pt-4">
+            <span className="text-xs text-white/40 font-medium">Total</span>
+            <span className="text-3xl font-black tracking-tight text-brand-yellow">{currentPrice * quantity} <span className="text-base font-bold text-brand-yellow/60">MAD</span></span>
+          </div>
+        </motion.div>
+
+        {/* ── Add to Cart CTA ─── */}
         <motion.button
-          whileHover={{ scale: 1.02, boxShadow: "0 20px 40px rgba(74, 144, 226, 0.2)" }}
-          whileTap={{ scale: 0.98 }}
+          whileHover={{ scale: 1.02, boxShadow: '0 16px 40px rgba(74,144,226,0.25)' }}
+          whileTap={{ scale: 0.97 }}
           onClick={handleAddToCart}
           disabled={isFinalizing}
-          className="w-full py-5 rounded-2xl bg-brand-blue text-white font-black text-xs uppercase tracking-[0.3em] transition-all shadow-2xl flex items-center justify-center gap-3 shadow-brand-blue/20"
+          className="w-full py-4 rounded-xl bg-brand-blue text-white font-bold text-sm tracking-wide transition-all shadow-xl shadow-brand-blue/20 flex items-center justify-center gap-3 hover:bg-brand-blue/90"
         >
           {isFinalizing ? <Loader2 className="w-4 h-4 animate-spin" /> : <ShoppingCart className="w-4 h-4" />}
-          {isFinalizing ? 'Traitement...' : 'Ajouter au panier'}
+          {isFinalizing ? 'Traitement…' : 'Ajouter au panier'}
         </motion.button>
 
         {/* Choice Confirmation Modal */}
