@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
+import { useApp } from '@/lib/store';
 import { 
   Package, 
   PlusCircle, 
@@ -68,6 +69,7 @@ const getColorHex = (colorName: string): string | null => {
 
 /* ─────────── Component ─────────── */
 export default function AdminProductsPage() {
+  const { showToast } = useApp();
   /* Core state */
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -310,25 +312,25 @@ export default function AdminProductsPage() {
       // 1. Upload main image to storage if selected
       if (imageFile) {
         setUploadingImage(true);
-        const fileExt = imageFile.name.split('.').pop();
-        const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
+        const filePath = `${Date.now()}-${imageFile.name}`;
         
         // Storage upload
         const { error: uploadError } = await supabase.storage
-          .from('product-images')
-          .upload(fileName, imageFile);
+          .from('assets')
+          .upload(filePath, imageFile);
 
         if (uploadError) {
           console.error("Supabase Storage error details:", uploadError);
-          throw new Error(`Échec de l'upload de l'image : ${uploadError.message}. Vérifiez que le bucket "product-images" existe et est accessible.`);
+          showToast(`Échec de l'upload : ${uploadError.message}`, "error");
+          throw new Error(`Échec de l'upload de l'image : ${uploadError.message}`);
         }
 
         // Retrieve public URL
-        const { data: { publicUrl } } = supabase.storage
-          .from('product-images')
-          .getPublicUrl(fileName);
+        const { data } = supabase.storage
+          .from('assets')
+          .getPublicUrl(filePath);
         
-        finalImageUrl = publicUrl;
+        finalImageUrl = data.publicUrl;
         setUploadingImage(false);
       }
 
@@ -377,17 +379,19 @@ export default function AdminProductsPage() {
         throw new Error(responseError.message);
       }
 
-      setSuccess(
-        editingId 
-          ? `Le produit "${name}" a été mis à jour avec succès.` 
-          : `Le produit "${name}" a été créé avec succès.`
-      );
+      const successMsg = editingId 
+        ? `Le produit "${name}" a été mis à jour avec succès.` 
+        : `Le produit "${name}" a été créé avec succès.`;
+      setSuccess(successMsg);
+      showToast(successMsg, "success");
       handleCancelEdit();
       await fetchProducts();
 
     } catch (err: any) {
       console.error('Save query failed:', err);
-      setError(err.message || 'Une erreur inattendue est survenue lors de la sauvegarde.');
+      const errMsg = err.message || 'Une erreur inattendue est survenue lors de la sauvegarde.';
+      setError(errMsg);
+      showToast(errMsg, "error");
     } finally {
       setSaving(false);
       setUploadingImage(false);
@@ -1100,7 +1104,7 @@ export default function AdminProductsPage() {
                   {saving || uploadingImage ? (
                     <>
                       <Loader2 className="w-4 h-4 animate-spin" /> 
-                      <span>{uploadingImage ? 'Téléchargement image...' : 'Enregistrement...'}</span>
+                      <span>Enregistrement...</span>
                     </>
                   ) : (
                     <>

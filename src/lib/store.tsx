@@ -59,7 +59,7 @@ function applyTheme(theme: Theme) {
 }
 
 export function AppProvider({ children }: { children: React.ReactNode }) {
-  const supabase = createClient();
+  const [supabase] = useState(() => createClient());
   const [lang, setLangState] = useState<Lang>('fr');
   const [theme, setThemeState] = useState<Theme>(defaultTheme);
   const [user, setUser] = useState<User | null>(null);

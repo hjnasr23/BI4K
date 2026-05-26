@@ -63,6 +63,16 @@ export default function TShirtEditor() {
   const [history, setHistory] = useState<string[]>([]);
   const [historyIndex, setHistoryIndex] = useState(-1);
 
+  // Coordinate Placement State
+  const [coordinates, setCoordinates] = useState({
+    x: 150,
+    y: 150,
+    width: 200,
+    height: 200,
+    canvasWidth: 500,
+    canvasHeight: 500
+  });
+
   const router = useRouter();
   const searchParams = useSearchParams();
   const queryProductId = searchParams.get('productId') || "cmosndxll00000eps60qnuw76";
@@ -197,18 +207,45 @@ export default function TShirtEditor() {
     setHistory([JSON.stringify(canvas.toJSON())]);
     setHistoryIndex(0);
 
+    const updateCoords = () => {
+      const activeObject = canvas.getActiveObject() || canvas.getObjects()[0];
+      if (activeObject) {
+        const rect = activeObject.getBoundingRect();
+        setCoordinates({
+          x: Math.round(rect.left),
+          y: Math.round(rect.top),
+          width: Math.round(rect.width),
+          height: Math.round(rect.height),
+          canvasWidth: canvas.getWidth(),
+          canvasHeight: canvas.getHeight()
+        });
+      }
+    };
+
     canvas.on('object:moving', (e) => {
       const obj = e.target!;
       const centerX = 250;
       const centerY = 250;
       if (Math.abs(obj.left! - centerX) < 5) obj.set({ left: centerX }).setCoords();
       if (Math.abs(obj.top! - centerY) < 5) obj.set({ top: centerY }).setCoords();
+      updateCoords();
+    });
+
+    canvas.on('object:scaling', () => {
+      updateCoords();
     });
 
     canvas.on('object:modified', () => {
       saveHistoryRef.current();
       addLogRef.current("Workspace updated", "system");
+      updateCoords();
     });
+
+    canvas.on('selection:created', updateCoords);
+    canvas.on('selection:updated', updateCoords);
+    canvas.on('selection:cleared', updateCoords);
+    canvas.on('object:added', updateCoords);
+    canvas.on('object:removed', updateCoords);
 
     // No cleanup — intentionally letting the Fabric instance survive
     // React 18 Strict Mode's unmount/remount cycle. Disposing here
@@ -329,7 +366,9 @@ export default function TShirtEditor() {
       const transparentDesign = canvas.toDataURL({ format: 'png', quality: 1, multiplier: 1 });
       const designUrl = transparentDesign || "";
 
-      // Extract placement coordinates from the canvas clip path (the printable zone)
+      // Extract placement coordinates from active design element (or fallback to clip path printable zone)
+      const activeObject = canvas.getActiveObject() || canvas.getObjects()[0];
+      
       const clipPath = canvas.clipPath;
       const clipX = (clipPath as any)?.left ?? 150;
       const clipY = (clipPath as any)?.top ?? 150;
@@ -338,8 +377,7 @@ export default function TShirtEditor() {
       const canvasW = canvas.getWidth();
       const canvasH = canvas.getHeight();
 
-      // Build the structured coordinates payload
-      const coordinates = {
+      let finalCoordinates = {
         x: clipX,
         y: clipY,
         width: clipW,
@@ -347,6 +385,18 @@ export default function TShirtEditor() {
         canvasWidth: canvasW,
         canvasHeight: canvasH
       };
+
+      if (activeObject) {
+        const rect = activeObject.getBoundingRect();
+        finalCoordinates = {
+          x: Math.round(rect.left),
+          y: Math.round(rect.top),
+          width: Math.round(rect.width),
+          height: Math.round(rect.height),
+          canvasWidth: canvasW,
+          canvasHeight: canvasH
+        };
+      }
 
       const now = new Date();
       const isSaleActive = productData &&
@@ -363,7 +413,7 @@ export default function TShirtEditor() {
         quantity: quantity,
         image_url: productData?.image_url || mockupUrl,
         design_url: designUrl,
-        coordinates: coordinates,
+        coordinates: finalCoordinates,
         // Legacy fields for backward compatibility
         mockupUrl: mockupUrl,
         finalMockup: designUrl

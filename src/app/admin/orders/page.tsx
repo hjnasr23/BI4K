@@ -2,6 +2,8 @@
 
 import React, { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
+import { useApp } from "@/lib/store";
+import { useRouter } from "next/navigation";
 import {
   ChevronDown,
   ChevronUp,
@@ -53,6 +55,8 @@ interface Order {
 }
 
 export default function AdminOrdersPage() {
+  const { showToast } = useApp();
+  const router = useRouter();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [expandedOrderId, setExpandedOrderId] = useState<string | null>(null);
@@ -76,32 +80,35 @@ export default function AdminOrdersPage() {
   };
 
   const updateOrderStatus = async (orderId: string, newStatus: string) => {
-    setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status: newStatus } : o));
-    
     const { error } = await supabase
       .from('orders')
       .update({ status: newStatus })
       .eq('id', orderId);
 
     if (error) {
-      console.error('Error updating order status:', error);
-      fetchOrders();
+      console.error('Supabase Update Error:', error);
+      showToast(`Erreur Supabase: ${error.message}`, "error");
+    } else {
+      setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status: newStatus } : o));
+      showToast("Statut de la commande mis à jour avec succès !", "success");
+      router.refresh();
     }
   };
 
   const getStatusColor = (status: string) => {
-    switch (status.toLowerCase()) {
-      case 'pending':
-      case 'en attente':
-        return 'bg-amber-500/10 text-amber-500 border-amber-500/20';
-      case 'livrée':
-      case 'livree':
-        return 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20';
-      case 'annulée':
-      case 'annulee':
-        return 'bg-rose-500/10 text-rose-500 border-rose-500/20';
+    switch ((status || '').toUpperCase().trim()) {
+      case 'PENDING':
+      case 'EN ATTENTE':
+        return 'text-amber-500 border-amber-500/30 bg-[#1A1A1A]';
+      case 'LIVRÉE':
+      case 'LIVREE':
+      case 'DELIVERED':
+        return 'text-emerald-500 border-emerald-500/30 bg-[#1A1A1A]';
+      case 'ANNULÉE':
+      case 'ANNULEE':
+        return 'text-rose-500 border-rose-500/30 bg-[#1A1A1A]';
       default:
-        return 'bg-zinc-500/10 text-zinc-400 border-zinc-500/20';
+        return 'text-zinc-400 border-zinc-700 bg-[#1A1A1A]';
     }
   };
 
@@ -229,14 +236,21 @@ export default function AdminOrdersPage() {
 
                       {/* Status Dropdown */}
                       <td className="py-5 px-6 text-right align-top" onClick={(e) => e.stopPropagation()}>
-                        <div className="relative inline-block text-left group/dropdown">
-                          <button className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-[10px] font-black uppercase tracking-widest cursor-pointer hover:opacity-80 transition-opacity ${getStatusColor(order.status)}`}>
-                            {order.status} <ChevronDown className="w-3 h-3" />
-                          </button>
-                          <div className="absolute right-0 mt-2 w-32 origin-top-right rounded-xl bg-zinc-900 border border-white/10 shadow-2xl opacity-0 invisible group-hover/dropdown:opacity-100 group-hover/dropdown:visible transition-all z-50 overflow-hidden">
-                            <button onClick={() => updateOrderStatus(order.id, 'en attente')} className="w-full text-left px-4 py-3 text-[10px] uppercase tracking-widest font-black text-amber-500 hover:bg-white/5 transition-colors">En attente</button>
-                            <button onClick={() => updateOrderStatus(order.id, 'livrée')} className="w-full text-left px-4 py-3 text-[10px] uppercase tracking-widest font-black text-emerald-500 hover:bg-white/5 transition-colors">Livrée</button>
-                            <button onClick={() => updateOrderStatus(order.id, 'annulée')} className="w-full text-left px-4 py-3 text-[10px] uppercase tracking-widest font-black text-rose-500 hover:bg-white/5 transition-colors">Annulée</button>
+                        <div className="relative inline-block text-left" onClick={(e) => e.stopPropagation()}>
+                          <select
+                            value={order.status ? order.status.toUpperCase().trim() : 'PENDING'}
+                            onChange={async (e) => {
+                              const newValue = e.target.value;
+                              await updateOrderStatus(order.id, newValue);
+                            }}
+                            className={`bg-[#1A1A1A] border rounded-md px-3 py-1 outline-none focus:ring-2 focus:ring-brand-blue appearance-none text-[10px] font-black uppercase tracking-widest cursor-pointer transition-all pr-8 ${getStatusColor(order.status)}`}
+                          >
+                            <option value="PENDING" className="bg-[#1A1A1A] text-amber-500 font-black">PENDING</option>
+                            <option value="LIVRÉE" className="bg-[#1A1A1A] text-emerald-500 font-black">LIVRÉE</option>
+                            <option value="ANNULÉE" className="bg-[#1A1A1A] text-rose-500 font-black">ANNULÉE</option>
+                          </select>
+                          <div className="absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
+                            <ChevronDown className="w-3.5 h-3.5" />
                           </div>
                         </div>
                       </td>

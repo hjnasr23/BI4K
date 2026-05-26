@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
+import { useApp } from '@/lib/store';
 import { 
   Tag, 
   PlusCircle, 
@@ -30,6 +31,7 @@ interface Category {
 
 /* ─────────── Component ─────────── */
 export default function AdminCategoriesPage() {
+  const { showToast } = useApp();
   /* Core state */
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
@@ -155,23 +157,23 @@ export default function AdminCategoriesPage() {
       // 1. Upload category icon/image if selected
       if (imageFile) {
         setUploadingImage(true);
-        const fileExt = imageFile.name.split('.').pop();
-        const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
+        const filePath = `${Date.now()}-${imageFile.name}`;
 
         const { error: uploadError } = await supabase.storage
-          .from('categories-images')
-          .upload(fileName, imageFile);
+          .from('assets')
+          .upload(filePath, imageFile);
 
         if (uploadError) {
           console.error("Storage upload details:", uploadError);
-          throw new Error(`Échec de l'upload de l'image : ${uploadError.message}. Assurez-vous que le bucket "categories-images" existe avec des droits RLS adéquats.`);
+          showToast(`Échec de l'upload : ${uploadError.message}`, "error");
+          throw new Error(`Échec de l'upload de l'image : ${uploadError.message}`);
         }
 
-        const { data: { publicUrl } } = supabase.storage
-          .from('categories-images')
-          .getPublicUrl(fileName);
+        const { data } = supabase.storage
+          .from('assets')
+          .getPublicUrl(filePath);
 
-        finalImageUrl = publicUrl;
+        finalImageUrl = data.publicUrl;
         setUploadingImage(false);
       }
 
@@ -200,17 +202,19 @@ export default function AdminCategoriesPage() {
         throw new Error(responseError.message);
       }
 
-      setSuccess(
-        editingId 
-          ? `La catégorie "${name}" a été modifiée avec succès.` 
-          : `La catégorie "${name}" a été ajoutée avec succès.`
-      );
+      const successMsg = editingId 
+        ? `La catégorie "${name}" a été modifiée avec succès.` 
+        : `La catégorie "${name}" a été ajoutée avec succès.`;
+      setSuccess(successMsg);
+      showToast(successMsg, "success");
       handleCancelEdit();
       await fetchCategories();
 
     } catch (err: any) {
       console.error('Save query failed:', err);
-      setError(err.message || 'Une erreur inattendue est survenue lors de la sauvegarde.');
+      const errMsg = err.message || 'Une erreur inattendue est survenue lors de la sauvegarde.';
+      setError(errMsg);
+      showToast(errMsg, "error");
     } finally {
       setSaving(false);
       setUploadingImage(false);
@@ -615,7 +619,7 @@ export default function AdminCategoriesPage() {
                   {saving || uploadingImage ? (
                     <>
                       <Loader2 className="w-4 h-4 animate-spin" /> 
-                      <span>{uploadingImage ? 'Téléchargement image...' : 'Enregistrement...'}</span>
+                      <span>{uploadingImage ? 'Uploading...' : 'Enregistrement...'}</span>
                     </>
                   ) : (
                     <>
