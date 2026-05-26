@@ -185,12 +185,12 @@ export default function TShirtEditor() {
 
     fabric.Object.prototype.set({
       transparentCorners: false,
-      cornerColor: '#6366f1',
+      cornerColor: '#4A90E2',
       cornerStrokeColor: '#ffffff',
       cornerStyle: 'circle',
       cornerSize: 10,
       padding: 10,
-      borderColor: '#6366f1',
+      borderColor: '#4A90E2',
       borderDashArray: [4, 4]
     });
 
@@ -392,7 +392,7 @@ export default function TShirtEditor() {
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
             title="Select Tool"
-            className="w-12 h-12 rounded-2xl bg-black/80 backdrop-blur-xl border border-white/10 flex items-center justify-center text-primary shadow-2xl transition-all"
+            className="w-12 h-12 rounded-2xl bg-black/80 backdrop-blur-xl border border-white/10 flex items-center justify-center text-brand-blue shadow-2xl transition-all"
           >
             <MousePointer2 className="w-5 h-5" />
           </motion.button>
@@ -442,11 +442,11 @@ export default function TShirtEditor() {
             style={{ width: 500, height: 500 }}
           >
             <img src={mockupUrl} alt="Backdrop" className="absolute inset-0 w-full h-full object-cover z-0 pointer-events-none" />
-            <div className="absolute border border-dashed border-primary/40 pointer-events-none rounded-xl z-20" style={{ left: 150, top: 150, width: 200, height: 200 }}>
-              <div className="absolute -top-1 -left-1 w-2 h-2 bg-primary/60 rounded-full" />
-              <div className="absolute -top-1 -right-1 w-2 h-2 bg-primary/60 rounded-full" />
-              <div className="absolute -bottom-1 -left-1 w-2 h-2 bg-primary/60 rounded-full" />
-              <div className="absolute -bottom-1 -right-1 w-2 h-2 bg-primary/60 rounded-full" />
+            <div className="absolute border border-dashed border-brand-blue/40 pointer-events-none rounded-xl z-20" style={{ left: 150, top: 150, width: 200, height: 200 }}>
+              <div className="absolute -top-1 -left-1 w-2 h-2 bg-brand-blue/60 rounded-full" />
+              <div className="absolute -top-1 -right-1 w-2 h-2 bg-brand-blue/60 rounded-full" />
+              <div className="absolute -bottom-1 -left-1 w-2 h-2 bg-brand-blue/60 rounded-full" />
+              <div className="absolute -bottom-1 -right-1 w-2 h-2 bg-brand-blue/60 rounded-full" />
             </div>
             {/* mix-blend-multiply makes white AI backgrounds disappear into the product */}
             <canvas id="main-fabric-canvas" width={500} height={500} className="absolute inset-0 z-10 mix-blend-multiply" />
@@ -464,7 +464,7 @@ export default function TShirtEditor() {
           {generationProgress > 0 && (
             <div className="absolute top-0 left-0 right-0 h-1 bg-black/20 z-10 overflow-hidden rounded-t-[2.5rem]">
               <motion.div
-                className="h-full bg-gradient-to-r from-primary via-violet-500 to-primary"
+                className="h-full bg-gradient-to-r from-brand-blue via-brand-yellow to-brand-blue"
                 initial={{ width: '0%' }}
                 animate={{ width: `${Math.min(generationProgress, 100)}%` }}
                 transition={{ duration: 0.3, ease: 'easeOut' }}
@@ -473,14 +473,14 @@ export default function TShirtEditor() {
           )}
 
           <div className="flex items-center justify-between mb-6">
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-primary text-[10px] font-black uppercase tracking-widest"><Sparkles className="w-3 h-3" /> Vision Engine</div>
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-brand-blue/10 border border-brand-blue/20 text-brand-blue text-[10px] font-black uppercase tracking-widest"><Sparkles className="w-3 h-3" /> Vision Engine</div>
             <div className="flex items-center gap-2">
               <span className="text-[8px] font-black uppercase tracking-widest text-emerald-400/60">Free · No API Key</span>
               <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
             </div>
           </div>
           <textarea
-            className="w-full h-24 p-5 text-foreground bg-black/40 border border-white/5 rounded-2xl outline-none resize-none transition-all font-medium text-sm mb-3 focus:border-primary/40 placeholder:text-foreground/20"
+            className="w-full h-24 p-5 text-foreground bg-black/40 border border-white/5 rounded-2xl outline-none resize-none transition-all font-medium text-sm mb-3 focus:border-brand-blue/40 placeholder:text-foreground/20"
             placeholder="Décrivez votre design (ex: 'Un dragon japonais en style encre, minimaliste' / 'A retro sunset with palm trees and neon vibes')" 
             value={prompt} 
             onChange={(e) => setPrompt(e.target.value)}
@@ -494,10 +494,10 @@ export default function TShirtEditor() {
             disabled={isGenerating || !prompt.trim()}
             className={`w-full py-4 rounded-xl font-black text-xs uppercase shadow-2xl transition-all flex items-center justify-center gap-3 ${
               isGenerating 
-                ? 'bg-primary/60 text-white/80 cursor-wait' 
+                ? 'bg-brand-blue/60 text-white/80 cursor-wait' 
                 : !prompt.trim() 
                   ? 'bg-white/5 text-foreground/20 cursor-not-allowed'
-                  : 'bg-primary text-white hover:shadow-primary/30'
+                  : 'bg-brand-blue text-white hover:shadow-brand-blue/30'
             }`}
           >
             {isGenerating ? (
@@ -515,7 +515,7 @@ export default function TShirtEditor() {
           className="glass rounded-[2.5rem] border-white/5 p-8 relative overflow-hidden group"
         >
           <div className="flex items-center justify-between mb-6">
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-secondary/10 border border-secondary/20 text-secondary text-[10px] font-black uppercase tracking-widest"><Type className="w-3 h-3" /> Typography</div>
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-brand-yellow/10 border border-brand-yellow/20 text-brand-yellow text-[10px] font-black uppercase tracking-widest"><Type className="w-3 h-3" /> Typography</div>
           </div>
           <div className="grid grid-cols-2 gap-4 mb-4">
             <div className="relative group/font">
@@ -542,7 +542,7 @@ export default function TShirtEditor() {
           transition={{ delay: 0.2 }}
           className="glass rounded-[2rem] border-white/5 p-6 bg-black/40 h-40 flex flex-col overflow-hidden"
         >
-          <div className="flex items-center gap-2 mb-4 border-b border-white/5 pb-3"><Terminal className="w-3 h-3 text-primary" /><span className="text-[8px] font-black uppercase tracking-[0.4em] text-foreground/40">Studio Log</span></div>
+          <div className="flex items-center gap-2 mb-4 border-b border-white/5 pb-3"><Terminal className="w-3 h-3 text-brand-blue" /><span className="text-[8px] font-black uppercase tracking-[0.4em] text-foreground/40">Studio Log</span></div>
           <div className="flex-grow overflow-y-auto space-y-2 pr-2">
             <AnimatePresence initial={false}>
               {studioLogs.map(log => (
@@ -553,7 +553,7 @@ export default function TShirtEditor() {
                   className="flex gap-3 text-[9px] font-mono"
                 >
                   <span className="text-foreground/20">[{log.time}]</span>
-                  <span className={log.type === 'success' ? 'text-green-500' : log.type === 'ai' ? 'text-primary' : 'text-foreground/40'}>{log.message}</span>
+                  <span className={log.type === 'success' ? 'text-green-500' : log.type === 'ai' ? 'text-brand-blue' : 'text-foreground/40'}>{log.message}</span>
                 </motion.div>
               ))}
             </AnimatePresence>
@@ -574,16 +574,16 @@ export default function TShirtEditor() {
         <div className="pt-4 border-t border-white/5 mb-6">
           <div className="flex justify-between items-end">
             <p className="text-[9px] font-black uppercase tracking-[0.4em] text-foreground/20">Final Amount</p>
-            <p className="text-2xl font-black tracking-tighter text-white">{currentPrice * quantity} MAD</p>
+            <p className="text-2xl font-black tracking-tighter text-brand-yellow">{currentPrice * quantity} MAD</p>
           </div>
         </div>
 
         <motion.button
-          whileHover={{ scale: 1.02, boxShadow: "0 20px 40px rgba(99, 102, 241, 0.2)" }}
+          whileHover={{ scale: 1.02, boxShadow: "0 20px 40px rgba(74, 144, 226, 0.2)" }}
           whileTap={{ scale: 0.98 }}
           onClick={handleAddToCart}
           disabled={isFinalizing}
-          className="w-full py-5 rounded-2xl bg-primary text-white font-black text-xs uppercase tracking-[0.3em] transition-all shadow-2xl flex items-center justify-center gap-3"
+          className="w-full py-5 rounded-2xl bg-brand-blue text-white font-black text-xs uppercase tracking-[0.3em] transition-all shadow-2xl flex items-center justify-center gap-3 shadow-brand-blue/20"
         >
           {isFinalizing ? <Loader2 className="w-4 h-4 animate-spin" /> : <ShoppingCart className="w-4 h-4" />}
           {isFinalizing ? 'Traitement...' : 'Ajouter au panier'}
@@ -608,7 +608,7 @@ export default function TShirtEditor() {
                 </button>
                 <Link
                   href="/cart"
-                  className="flex-grow py-4 bg-primary hover:bg-primary/90 rounded-2xl font-black text-[10px] uppercase tracking-widest text-white transition-all shadow-lg shadow-primary/20 flex items-center justify-center gap-1.5 hover:scale-[1.02] active:scale-[0.98]"
+                  className="flex-grow py-4 bg-brand-blue hover:bg-brand-blue/90 rounded-2xl font-black text-[10px] uppercase tracking-widest text-white transition-all shadow-lg shadow-brand-blue/20 flex items-center justify-center gap-1.5 hover:scale-[1.02] active:scale-[0.98]"
                 >
                   Voir le panier <ArrowRight className="w-4 h-4" />
                 </Link>

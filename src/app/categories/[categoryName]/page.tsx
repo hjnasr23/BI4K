@@ -97,9 +97,9 @@ const ProductCard = ({ product, lang }: { product: Product; lang: string }) => {
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
-      <div className="absolute -inset-4 bg-gradient-to-tr from-primary/20 to-accent/20 rounded-[2.5rem] blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
+      <div className="absolute -inset-4 bg-gradient-to-tr from-brand-blue/20 to-brand-yellow/20 rounded-[2.5rem] blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
       
-      <div className="relative rounded-[2rem] bg-card-bg border border-card-border overflow-hidden group-hover:border-primary/50 transition-all duration-500 shadow-2xl bg-[#111116] flex flex-col h-full">
+      <div className="relative rounded-[2rem] bg-card-bg border border-card-border overflow-hidden group-hover:border-brand-blue/50 transition-all duration-500 shadow-2xl bg-[#111116] flex flex-col h-full">
         <Link href={`/products/${product.slug}`}>
           <div className="aspect-[4/5] relative overflow-hidden bg-background/50 p-8 flex items-center justify-center cursor-pointer">
             {/* Image with transition crossfade */}
@@ -108,7 +108,7 @@ const ProductCard = ({ product, lang }: { product: Product; lang: string }) => {
               alt={product.name}
               className="w-full h-full object-contain transition-all duration-500 ease-out drop-shadow-2xl"
             />
-            <div className="absolute inset-0 bg-primary/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+            <div className="absolute inset-0 bg-brand-blue/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
             
             {/* Sale Ends Countdown badge */}
             {isSaleActive && countdownText && (
@@ -121,8 +121,8 @@ const ProductCard = ({ product, lang }: { product: Product; lang: string }) => {
         
         <div className="p-8 flex flex-col justify-between flex-grow">
           <div className="flex justify-between items-start gap-4">
-            <Link href={`/products/${product.slug}`} className="hover:text-primary transition-colors flex-1">
-              <h3 className="font-black text-lg leading-tight uppercase tracking-tighter text-slate-100 group-hover:text-primary transition-colors">
+            <Link href={`/products/${product.slug}`} className="hover:text-brand-yellow transition-colors flex-1">
+              <h3 className="font-black text-lg leading-tight uppercase tracking-tighter text-slate-100 group-hover:text-brand-yellow transition-colors">
                 {product.name}
               </h3>
             </Link>
@@ -135,15 +135,15 @@ const ProductCard = ({ product, lang }: { product: Product; lang: string }) => {
                   <p className="text-xs font-bold text-gray-500 line-through mt-0.5">{product.price} MAD</p>
                 </>
               ) : (
-                <p className="text-xl font-black text-primary">{product.price} MAD</p>
+                <p className="text-xl font-black text-brand-yellow">{product.price} MAD</p>
               )}
             </div>
           </div>
           
           {/* View Details Link */}
-          <Link href={`/products/${product.slug}`} className="mt-6 pt-6 border-t border-white/5 flex items-center justify-between text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 hover:text-primary transition-all">
+          <Link href={`/products/${product.slug}`} className="mt-6 pt-6 border-t border-white/5 flex items-center justify-between text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 hover:text-brand-yellow transition-all">
             <span>{lang === 'fr' ? 'Voir les détails' : 'View details'}</span>
-            <span className="w-5 h-5 rounded-full bg-white/5 group-hover:bg-primary group-hover:text-white flex items-center justify-center transition-all group-hover:translate-x-1">
+            <span className="w-5 h-5 rounded-full bg-white/5 group-hover:bg-brand-blue group-hover:text-white flex items-center justify-center transition-all group-hover:translate-x-1">
               &rarr;
             </span>
           </Link>
@@ -274,8 +274,8 @@ export default function CategoryDetailsPage({ params }: { params?: { categoryNam
       <main className="container mx-auto px-4 pt-32 pb-16 flex-grow relative z-10">
         {/* Header Section */}
         <div className="mb-12 animate-reveal">
-           <Link href="/categories" className="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.4em] text-primary/60 hover:text-primary transition-colors mb-6 group">
-             <div className="w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center group-hover:-translate-x-1 transition-transform">
+           <Link href="/categories" className="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.4em] text-brand-blue/60 hover:text-brand-yellow transition-colors mb-6 group">
+             <div className="w-5 h-5 rounded-full bg-brand-blue/10 flex items-center justify-center group-hover:-translate-x-1 transition-transform">
                &larr;
              </div>
              {lang === 'fr' ? 'Retour aux catégories' : 'Back to Categories'}
@@ -288,7 +288,7 @@ export default function CategoryDetailsPage({ params }: { params?: { categoryNam
                  </h1>
               </div>
               
-              <Link href="/upload" className="inline-flex items-center gap-3 px-8 py-4 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-md font-black text-xs uppercase tracking-[0.2em] hover:bg-primary hover:text-white hover:border-primary hover:scale-[1.05] active:scale-[0.95] transition-all group shadow-xl shadow-black/20">
+              <Link href="/upload" className="inline-flex items-center gap-3 px-8 py-4 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-md font-black text-xs uppercase tracking-[0.2em] hover:bg-brand-blue hover:text-white hover:border-brand-blue hover:scale-[1.05] active:scale-[0.95] transition-all group shadow-xl shadow-black/20">
                 <UploadCloud className="w-5 h-5 group-hover:animate-bounce" />
                 {lang === 'fr' ? 'Upload Design' : 'Upload Design'}
               </Link>
@@ -301,15 +301,15 @@ export default function CategoryDetailsPage({ params }: { params?: { categoryNam
           <aside className="w-full lg:w-72 flex-shrink-0 hidden lg:block">
             <div className="sticky top-32 space-y-2">
               <div className="flex items-center gap-3 mb-10">
-                <Filter className="w-5 h-5 text-primary" />
+                <Filter className="w-5 h-5 text-brand-yellow" />
                 <h3 className="font-black uppercase tracking-[0.5em] text-xs">Filter Assets</h3>
               </div>
 
               {/* Sizes Filter */}
               {uniqueSizes.length > 0 && (
                 <div className="border-b border-white/5 pb-8 mb-8 animate-reveal">
-                  <h4 className="text-[10px] font-black uppercase tracking-[0.4em] text-primary mb-6 flex items-center gap-3">
-                    <div className="w-1.5 h-1.5 rounded-full bg-primary" />
+                  <h4 className="text-[10px] font-black uppercase tracking-[0.4em] text-brand-yellow mb-6 flex items-center gap-3">
+                    <div className="w-1.5 h-1.5 rounded-full bg-brand-yellow" />
                     {lang === 'fr' ? 'Tailles' : 'Sizes'}
                   </h4>
                   <div className="space-y-3">
@@ -322,7 +322,7 @@ export default function CategoryDetailsPage({ params }: { params?: { categoryNam
                               type="checkbox" 
                               checked={isSelected}
                               onChange={() => {}}
-                              className="peer appearance-none w-5 h-5 rounded-lg border-2 border-white/10 bg-white/5 checked:bg-primary checked:border-primary transition-all cursor-pointer" 
+                              className="peer appearance-none w-5 h-5 rounded-lg border-2 border-white/10 bg-white/5 checked:bg-brand-blue checked:border-brand-blue transition-all cursor-pointer" 
                             />
                             <div className={`absolute w-2 h-2 bg-white rounded-sm transition-opacity pointer-events-none ${isSelected ? 'opacity-100' : 'opacity-0'}`} />
                           </div>
@@ -337,8 +337,8 @@ export default function CategoryDetailsPage({ params }: { params?: { categoryNam
               {/* Colors Filter */}
               {uniqueColors.length > 0 && (
                 <div className="border-b border-white/5 pb-8 mb-8 animate-reveal">
-                  <h4 className="text-[10px] font-black uppercase tracking-[0.4em] text-primary mb-6 flex items-center gap-3">
-                    <div className="w-1.5 h-1.5 rounded-full bg-primary" />
+                  <h4 className="text-[10px] font-black uppercase tracking-[0.4em] text-brand-yellow mb-6 flex items-center gap-3">
+                    <div className="w-1.5 h-1.5 rounded-full bg-brand-yellow" />
                     {lang === 'fr' ? 'Couleurs' : 'Colors'}
                   </h4>
                   <div className="grid grid-cols-5 gap-3">
@@ -350,7 +350,7 @@ export default function CategoryDetailsPage({ params }: { params?: { categoryNam
                           type="button"
                           onClick={() => toggleColor(colorName)}
                           title={colorName}
-                          className={`w-8 h-8 rounded-full border-2 transition-all shadow-lg active:scale-90 relative ${isSelected ? 'border-primary scale-110' : 'border-white/10 hover:border-white/40 hover:scale-105'}`}
+                          className={`w-8 h-8 rounded-full border-2 transition-all shadow-lg active:scale-90 relative ${isSelected ? 'border-brand-blue scale-110' : 'border-white/10 hover:border-white/40 hover:scale-105'}`}
                           style={{ backgroundColor: getColorHex(colorName) }}
                         >
                           {isSelected && (
@@ -378,13 +378,13 @@ export default function CategoryDetailsPage({ params }: { params?: { categoryNam
             {/* Filter & Search Bar */}
             <div className="glass rounded-[2rem] p-4 mb-12 flex flex-col xl:flex-row gap-4 items-center justify-between bg-white/5 border border-white/10 backdrop-blur-md">
               <div className="relative w-full xl:w-96 group">
-                <div className="absolute left-5 top-1/2 -translate-y-1/2 text-foreground/30 group-focus-within:text-primary transition-colors">
+                <div className="absolute left-5 top-1/2 -translate-y-1/2 text-foreground/30 group-focus-within:text-brand-blue transition-colors">
                   <Search className="w-5 h-5" />
                 </div>
                 <input 
                   type="text" 
                   placeholder={lang === 'fr' ? "Rechercher un modèle..." : "Search mockups..."}
-                  className="w-full pl-14 pr-6 py-4 bg-background/50 border border-card-border rounded-2xl focus:ring-4 focus:ring-primary/10 focus:border-primary outline-none transition-all font-medium text-sm text-slate-100 placeholder:text-slate-600"
+                  className="w-full pl-14 pr-6 py-4 bg-background/50 border border-card-border rounded-2xl focus:ring-4 focus:ring-brand-blue/10 focus:border-brand-blue outline-none transition-all font-medium text-sm text-slate-100 placeholder:text-slate-600"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
@@ -392,7 +392,7 @@ export default function CategoryDetailsPage({ params }: { params?: { categoryNam
 
               <div className="flex items-center gap-4 w-full xl:w-auto overflow-x-auto pb-2 xl:pb-0">
                   <div className="flex items-center gap-2 px-4 py-2 bg-background/50 border border-card-border rounded-xl flex-shrink-0">
-                    <Filter className="w-4 h-4 text-primary" />
+                    <Filter className="w-4 h-4 text-brand-yellow" />
                     <span className="text-[10px] font-black uppercase tracking-widest text-foreground/40">{lang === 'fr' ? "Trier" : "Sort"}</span>
                   </div>
                   <div className="flex gap-2 bg-background/50 border border-card-border p-1.5 rounded-2xl">
@@ -406,7 +406,7 @@ export default function CategoryDetailsPage({ params }: { params?: { categoryNam
                         onClick={() => setSortBy(option.id as any)}
                         className={`px-4 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${
                           sortBy === option.id 
-                          ? 'bg-primary text-white shadow-lg shadow-primary/20' 
+                          ? 'bg-brand-blue text-white shadow-lg shadow-brand-blue/20' 
                           : 'hover:bg-card-bg text-foreground/50'
                         }`}
                       >
@@ -420,10 +420,10 @@ export default function CategoryDetailsPage({ params }: { params?: { categoryNam
             {loading ? (
               <div className="flex flex-col justify-center items-center py-40 gap-6">
                 <div className="relative">
-                  <div className="w-20 h-20 rounded-full border-4 border-primary/20 border-t-primary animate-spin"></div>
-                  <Sparkles className="absolute inset-0 m-auto w-6 h-6 text-primary animate-pulse" />
+                  <div className="w-20 h-20 rounded-full border-4 border-brand-blue/20 border-t-brand-blue animate-spin"></div>
+                  <Sparkles className="absolute inset-0 m-auto w-6 h-6 text-brand-yellow animate-pulse" />
                 </div>
-                <p className="font-black uppercase tracking-[0.4em] text-primary/60 text-xs">Loading Catalog</p>
+                <p className="font-black uppercase tracking-[0.4em] text-brand-blue/60 text-xs">Loading Catalog</p>
               </div>
             ) : filteredProducts.length > 0 ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-8 animate-reveal">
@@ -437,7 +437,7 @@ export default function CategoryDetailsPage({ params }: { params?: { categoryNam
                   <Boxes className="w-10 h-10 text-foreground/20" />
                 </div>
                 <p className="text-2xl font-black text-foreground/40 uppercase tracking-tighter mb-8">{t.noProducts || 'AUCUN PRODUIT TROUVÉ'}</p>
-                <Link href="/upload" className="inline-flex items-center gap-2 px-8 py-4 rounded-2xl bg-primary text-white font-black text-xs uppercase tracking-widest hover:scale-105 active:scale-95 transition-all shadow-xl shadow-primary/20">
+                <Link href="/upload" className="inline-flex items-center gap-2 px-8 py-4 rounded-2xl bg-brand-blue hover:bg-brand-blue/90 text-white font-black text-xs uppercase tracking-widest hover:scale-105 active:scale-95 transition-all shadow-xl shadow-brand-blue/20">
                   {lang === 'fr' ? 'Créer un design personnalisé' : 'Create custom design instead'} &rarr;
                 </Link>
               </div>

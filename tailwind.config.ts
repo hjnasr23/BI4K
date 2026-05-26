@@ -22,6 +22,10 @@ const config: Config = {
           bg: "var(--card-bg)",
           border: "var(--card-border)",
         },
+        brand: {
+          yellow: '#F39C12',
+          blue: '#4A90E2'
+        },
       },
     },
   },

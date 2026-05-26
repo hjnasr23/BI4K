@@ -82,7 +82,7 @@ export default function ClientProductCustomizer({ product }: { product: any }) {
                   <span className="text-lg font-bold text-gray-500 line-through">{product.price} MAD</span>
                 </>
               ) : (
-                <span className="text-3xl font-black text-primary">{product.price} MAD</span>
+                <span className="text-3xl font-black text-brand-yellow">{product.price} MAD</span>
               )}
             </div>
           </div>
@@ -100,7 +100,7 @@ export default function ClientProductCustomizer({ product }: { product: any }) {
           {product.colors && product.colors.length > 0 && (
             <div className="border-t border-white/5 pt-6">
               <label className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-slate-500 mb-3">
-                <Palette className="w-4 h-4 text-primary" /> Couleur / Color
+                <Palette className="w-4 h-4 text-brand-yellow" /> Couleur / Color
               </label>
               <span className="inline-block px-5 py-2.5 rounded-2xl bg-white/5 border border-white/10 text-xs font-black uppercase tracking-widest text-slate-200">
                 {product.colors[0]}
@@ -112,7 +112,7 @@ export default function ClientProductCustomizer({ product }: { product: any }) {
           {product.sizes && product.sizes.length > 0 && (
             <div className="border-t border-white/5 pt-6">
               <label className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-slate-500 mb-3">
-                <Ruler className="w-4 h-4 text-primary" /> Taille / Size *
+                <Ruler className="w-4 h-4 text-brand-yellow" /> Taille / Size *
               </label>
               <div className="flex flex-wrap gap-3">
                 {product.sizes.map((size: string) => {
@@ -126,7 +126,7 @@ export default function ClientProductCustomizer({ product }: { product: any }) {
                       }}
                       className={`px-6 py-3.5 rounded-2xl font-black uppercase text-xs tracking-widest border-2 transition-all ${
                         isSelected 
-                          ? 'border-primary bg-primary/10 text-primary scale-105 shadow-lg shadow-primary/10' 
+                          ? 'border-brand-blue bg-brand-blue/10 text-brand-blue scale-105 shadow-lg shadow-brand-blue/10' 
                           : 'border-white/10 bg-white/5 hover:border-white/20 hover:bg-white/10 text-slate-300'
                       }`}
                     >
@@ -157,7 +157,7 @@ export default function ClientProductCustomizer({ product }: { product: any }) {
             </button>
             <button
               onClick={() => handleCustomize('ai')}
-              className="flex-grow py-5 rounded-2xl bg-primary hover:bg-primary/90 text-white font-black text-xs uppercase tracking-[0.2em] shadow-2xl shadow-primary/20 transition-all flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-[0.98]"
+              className="flex-grow py-5 rounded-2xl bg-brand-blue hover:bg-brand-blue/90 text-white font-black text-xs uppercase tracking-[0.2em] shadow-2xl shadow-brand-blue/20 transition-all flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-[0.98]"
             >
               <Sparkles className="w-4 h-4" />
               Générer avec l'IA

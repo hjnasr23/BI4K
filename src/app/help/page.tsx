@@ -30,9 +30,9 @@ export default function HelpPage() {
           {helpCards.map((card, i) => {
             const Icon = card.icon;
             return (
-              <div key={i} className="p-8 rounded-3xl bg-card-bg border border-card-border hover:border-primary/50 transition-colors group text-center">
-                <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform">
-                  <Icon className="w-6 h-6 text-primary" />
+              <div key={i} className="p-8 rounded-3xl bg-card-bg border border-card-border hover:border-brand-blue/50 transition-colors group text-center">
+                <div className="w-12 h-12 rounded-2xl bg-brand-blue/10 flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform">
+                  <Icon className="w-6 h-6 text-brand-yellow" />
                 </div>
                 <h3 className="font-bold mb-2">{card.title}</h3>
                 <p className="text-sm text-foreground/70">{card.desc}</p>
@@ -44,7 +44,7 @@ export default function HelpPage() {
         <section className="bg-card-bg border border-card-border rounded-[2.5rem] p-12 text-center max-w-4xl mx-auto">
           <h2 className="text-3xl font-bold mb-4">{t.contactSectionTitle}</h2>
           <p className="text-foreground/70 mb-8">{t.contactSectionDesc}</p>
-          <a href="mailto:support@bi4k.com" className="inline-flex items-center gap-2 px-8 py-4 rounded-xl font-bold bg-primary text-white hover:bg-primary-hover transition-colors">
+          <a href="mailto:support@bi4k.com" className="inline-flex items-center gap-2 px-8 py-4 rounded-xl font-bold bg-brand-blue text-white hover:bg-brand-blue/90 transition-colors">
             <Mail className="w-5 h-5" />
             Contact Support
           </a>

@@ -24,7 +24,7 @@ const signupSchema = z.object({
 type SignupFormValues = z.infer<typeof signupSchema>;
 
 export default function SignupPage() {
-  const { lang } = useApp();
+  const { lang, showToast } = useApp();
   const t = translations[lang];
   const router = useRouter();
   const { signUp } = useAuth();
@@ -41,14 +41,21 @@ export default function SignupPage() {
     setAuthError(null);
     const { error, requiresConfirmation } = await signUp(data.email, data.password, data.name);
     if (error) {
-      setAuthError(error);
-    } else if (requiresConfirmation) {
-      setSuccess(true);
-      setTimeout(() => router.push('/login'), 4000);
+      let message = error;
+      if (error === 'User already registered') {
+        message = lang === 'fr' ? 'Cet e-mail est déjà enregistré.' : 'User already registered.';
+      }
+      setAuthError(message);
     } else {
-      // Email confirmation disabled — user is immediately active
-      setSuccess(true);
-      setTimeout(() => router.push('/login'), 2000);
+      if (requiresConfirmation) {
+        showToast(lang === 'fr' ? 'Compte créé ! Veuillez confirmer votre e-mail.' : 'Account created! Please check your email.', 'success');
+        setSuccess(true);
+        setTimeout(() => router.push('/login'), 4000);
+      } else {
+        showToast(lang === 'fr' ? 'Compte créé avec succès !' : 'Account successfully created!', 'success');
+        setSuccess(true);
+        setTimeout(() => router.push('/login'), 2000);
+      }
     }
   };
 
@@ -60,8 +67,8 @@ export default function SignupPage() {
         <div className="w-full max-w-md">
           {/* Mobile logo */}
           <div className="flex lg:hidden items-center gap-2 mb-8">
-            <div className="w-8 h-8 rounded-xl bg-cyan-500/20 border border-cyan-500/30 flex items-center justify-center">
-              <Zap className="w-4 h-4 text-cyan-400" />
+            <div className="w-8 h-8 rounded-xl bg-brand-blue/20 border border-brand-blue/30 flex items-center justify-center">
+              <Zap className="w-4 h-4 text-brand-yellow" />
             </div>
             <span className="font-black text-sm tracking-tighter uppercase text-white/70">BI4K</span>
           </div>
@@ -71,9 +78,9 @@ export default function SignupPage() {
 
           {/* Success state */}
           {success ? (
-            <div className="p-6 rounded-3xl bg-cyan-500/10 border border-cyan-500/20 text-center">
-              <CheckCircle2 className="w-12 h-12 text-cyan-400 mx-auto mb-4" />
-              <p className="font-black text-lg text-cyan-300 mb-2">Account Created!</p>
+            <div className="p-6 rounded-3xl bg-brand-blue/10 border border-brand-blue/20 text-center">
+              <CheckCircle2 className="w-12 h-12 text-brand-yellow mx-auto mb-4" />
+              <p className="font-black text-lg text-brand-yellow mb-2">Account Created!</p>
               <p className="text-sm text-foreground/50">Check your email to confirm your account. Redirecting to sign in…</p>
             </div>
           ) : (
@@ -97,7 +104,7 @@ export default function SignupPage() {
                     type="text"
                     autoComplete="name"
                     placeholder="John Doe"
-                    className="w-full pl-11 pr-4 py-3.5 rounded-2xl bg-white/5 border border-white/10 focus:border-cyan-500/60 focus:bg-cyan-500/5 focus:ring-2 focus:ring-cyan-500/20 outline-none transition-all text-sm placeholder:text-foreground/20"
+                    className="w-full pl-11 pr-4 py-3.5 rounded-2xl bg-white border border-card-border text-gray-900 placeholder-gray-400 focus:border-brand-blue focus:ring-4 focus:ring-brand-blue/10 outline-none transition-all text-sm font-medium"
                   />
                 </div>
                 {errors.name && <p className="text-rose-400 text-xs mt-1 font-medium">{errors.name.message}</p>}
@@ -116,7 +123,7 @@ export default function SignupPage() {
                     type="email"
                     autoComplete="email"
                     placeholder="you@example.com"
-                    className="w-full pl-11 pr-4 py-3.5 rounded-2xl bg-white/5 border border-white/10 focus:border-cyan-500/60 focus:bg-cyan-500/5 focus:ring-2 focus:ring-cyan-500/20 outline-none transition-all text-sm placeholder:text-foreground/20"
+                    className="w-full pl-11 pr-4 py-3.5 rounded-2xl bg-white border border-card-border text-gray-900 placeholder-gray-400 focus:border-brand-blue focus:ring-4 focus:ring-brand-blue/10 outline-none transition-all text-sm font-medium"
                   />
                 </div>
                 {errors.email && <p className="text-rose-400 text-xs mt-1 font-medium">{errors.email.message}</p>}
@@ -135,7 +142,7 @@ export default function SignupPage() {
                     type={showPassword ? "text" : "password"}
                     autoComplete="new-password"
                     placeholder="••••••••"
-                    className="w-full pl-11 pr-12 py-3.5 rounded-2xl bg-white/5 border border-white/10 focus:border-cyan-500/60 focus:bg-cyan-500/5 focus:ring-2 focus:ring-cyan-500/20 outline-none transition-all text-sm placeholder:text-foreground/20"
+                    className="w-full pl-11 pr-12 py-3.5 rounded-2xl bg-white border border-card-border text-gray-900 placeholder-gray-400 focus:border-brand-blue focus:ring-4 focus:ring-brand-blue/10 outline-none transition-all text-sm font-medium"
                   />
                   <button
                     type="button"
@@ -162,7 +169,7 @@ export default function SignupPage() {
                     type={showConfirm ? "text" : "password"}
                     autoComplete="new-password"
                     placeholder="••••••••"
-                    className="w-full pl-11 pr-12 py-3.5 rounded-2xl bg-white/5 border border-white/10 focus:border-cyan-500/60 focus:bg-cyan-500/5 focus:ring-2 focus:ring-cyan-500/20 outline-none transition-all text-sm placeholder:text-foreground/20"
+                    className="w-full pl-11 pr-12 py-3.5 rounded-2xl bg-white border border-card-border text-gray-900 placeholder-gray-400 focus:border-brand-blue focus:ring-4 focus:ring-brand-blue/10 outline-none transition-all text-sm font-medium"
                   />
                   <button
                     type="button"
@@ -182,9 +189,9 @@ export default function SignupPage() {
                   id="signup-terms"
                   {...register("terms")}
                   type="checkbox"
-                  className="mt-0.5 w-4 h-4 rounded border-white/20 bg-white/5 text-cyan-500 focus:ring-cyan-500/30 focus:ring-offset-0 shrink-0"
+                  className="mt-0.5 w-4 h-4 rounded border-white/20 bg-white/5 text-brand-blue focus:ring-brand-blue/30 focus:ring-offset-0 shrink-0"
                 />
-                <span className="text-xs text-foreground/50 group-hover:text-foreground/70 transition-colors font-medium leading-relaxed">
+                <span className="text-xs text-slate-500 group-hover:text-slate-400 transition-colors font-medium leading-relaxed">
                   {t.signupTerms}
                 </span>
               </label>
@@ -195,7 +202,7 @@ export default function SignupPage() {
                 id="signup-submit-btn"
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full py-4 rounded-2xl font-black text-sm uppercase tracking-widest bg-cyan-600 hover:bg-cyan-500 text-white transition-all hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 flex items-center justify-center gap-3 shadow-xl shadow-cyan-500/20 mt-2"
+                className="w-full py-4 rounded-2xl font-black text-sm uppercase tracking-widest bg-brand-blue hover:bg-brand-blue/90 text-white transition-all hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 flex items-center justify-center gap-3 shadow-xl shadow-brand-blue/20 mt-2"
               >
                 {isSubmitting
                   ? <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -207,7 +214,7 @@ export default function SignupPage() {
 
           <p className="mt-8 text-center text-sm text-foreground/40">
             {t.signupHaveAccount}{" "}
-            <Link href="/login" id="signup-to-login-link" className="text-cyan-400 font-bold hover:text-cyan-300 transition-colors">
+            <Link href="/login" id="signup-to-login-link" className="text-brand-yellow font-bold hover:text-brand-yellow/80 transition-colors">
               {t.signupLoginLink}
             </Link>
           </p>
@@ -221,17 +228,17 @@ export default function SignupPage() {
 
       {/* Right decorative panel */}
       <div className="hidden lg:flex w-[42%] relative flex-col items-center justify-center p-16 overflow-hidden order-1 lg:order-2">
-        <div className="absolute inset-0 bg-gradient-to-bl from-cyan-950/60 via-[#08080a] to-[#08080a]" />
-        <div className="absolute top-1/3 right-1/4 w-72 h-72 bg-cyan-600/15 rounded-full blur-3xl animate-blob" />
-        <div className="absolute bottom-1/3 left-1/4 w-64 h-64 bg-teal-600/10 rounded-full blur-3xl animate-blob animation-delay-4000" />
-        <div className="absolute inset-0 opacity-5" style={{ backgroundImage: 'radial-gradient(circle, #06b6d4 1px, transparent 1px)', backgroundSize: '32px 32px' }} />
+        <div className="absolute inset-0 bg-gradient-to-bl from-brand-blue/30 via-[#08080a] to-[#08080a]" />
+        <div className="absolute top-1/3 right-1/4 w-72 h-72 bg-brand-blue/15 rounded-full blur-3xl animate-blob" />
+        <div className="absolute bottom-1/3 left-1/4 w-64 h-64 bg-brand-yellow/10 rounded-full blur-3xl animate-blob animation-delay-4000" />
+        <div className="absolute inset-0 opacity-5" style={{ backgroundImage: 'radial-gradient(circle, #4A90E2 1px, transparent 1px)', backgroundSize: '32px 32px' }} />
         <div className="relative z-10 max-w-sm text-center">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 text-xs font-bold uppercase tracking-widest mb-8">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-brand-blue/10 border border-brand-blue/20 text-brand-blue text-xs font-bold uppercase tracking-widest mb-8">
             <Zap className="w-3.5 h-3.5" />
             Get Started
           </div>
           <h1 className="text-4xl font-black tracking-tighter leading-tight mb-4 text-white">
-            Your creative<br /><span className="text-cyan-400">journey starts here.</span>
+            Your creative<br /><span className="text-brand-yellow">journey starts here.</span>
           </h1>
           <p className="text-sm text-white/40 font-medium leading-relaxed">
             Join thousands of creators who are designing, printing, and shipping their ideas with BI4K.
@@ -244,7 +251,7 @@ export default function SignupPage() {
               { value: "∞", label: "Design Possibilities" },
             ].map((stat) => (
               <div key={stat.label} className="p-4 rounded-2xl bg-white/5 border border-white/5 text-center">
-                <p className="text-2xl font-black text-cyan-400">{stat.value}</p>
+                <p className="text-2xl font-black text-brand-yellow">{stat.value}</p>
                 <p className="text-[10px] font-bold text-white/30 uppercase tracking-widest mt-1">{stat.label}</p>
               </div>
             ))}

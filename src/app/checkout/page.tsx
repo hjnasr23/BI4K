@@ -22,21 +22,21 @@ import {
 import Link from "next/link";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
+import { useApp } from "@/lib/store";
 
 export default function CheckoutPage() {
   const router = useRouter();
   const { items, clearCart } = useCartStore();
+  const { user, profile } = useApp();
   const [mounted, setMounted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
 
   // Form State
-  const [formData, setFormData] = useState({
-    fullName: "",
-    email: "",
-    phone: "",
-    address: ""
-  });
+  const [fullName, setFullName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [address, setAddress] = useState("");
 
   // Payment Method State
   const [paymentMethod, setPaymentMethod] = useState<'livraison' | 'carte' | 'rib'>('livraison');
@@ -45,6 +45,63 @@ export default function CheckoutPage() {
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  // Fetch User Profile on Mount
+  useEffect(() => {
+    async function loadUserProfile() {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (session) {
+          setEmail(session.user.email || "");
+          
+          // Query the profiles table for the current user
+          const { data, error } = await supabase
+            .from('profiles')
+            .select('full_name, phone, address')
+            .eq('id', session.user.id)
+            .single();
+            
+          if (data && !error) {
+            setFullName(data.full_name || '');
+            setPhone(data.phone || '');
+            setAddress(data.address || '');
+          } else {
+            // Robust fallback if column 'address' doesn't exist or query failed, try 'shipping_address' or user metadata
+            const { data: profileData } = await supabase
+              .from('profiles')
+              .select('*')
+              .eq('id', session.user.id)
+              .maybeSingle();
+
+            if (profileData) {
+              setFullName(profileData.full_name || '');
+              setPhone(profileData.phone || '');
+              const rawAddr = profileData.address || profileData.shipping_address || '';
+              if (rawAddr && typeof rawAddr === 'object') {
+                let text = (rawAddr as any).street || (rawAddr as any).address || '';
+                if ((rawAddr as any).city) {
+                  text += (text ? ", " : "") + (rawAddr as any).city;
+                }
+                setAddress(text);
+              } else {
+                setAddress(String(rawAddr));
+              }
+            } else {
+              setFullName(session.user.user_metadata?.full_name || '');
+              setPhone(session.user.phone || '');
+            }
+          }
+        }
+      } catch (err) {
+        console.error("Error loading user profile on mount:", err);
+      }
+    }
+    
+    if (mounted) {
+      loadUserProfile();
+    }
+  }, [mounted]);
 
   // Calculate totals
   const subtotal = items.reduce((acc, item) => acc + (item.price * item.quantity), 0);
@@ -57,10 +114,7 @@ export default function CheckoutPage() {
     }
   }, [mounted, items, isSuccess, router]);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-  };
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -95,22 +149,30 @@ export default function CheckoutPage() {
         payment_proof_url = publicUrl;
       }
 
+      // Check user session
+      const { data: { session } } = await supabase.auth.getSession();
+      const userId = session?.user?.id || null;
+
+      const orderPayload: any = {
+        full_name: fullName,
+        email: email,
+        phone: phone,
+        shipping_address: address,
+        total_amount: totalAmount,
+        order_items: items, // JSONB column
+        status: 'pending',
+        payment_method: paymentMethod,
+        payment_proof_url: payment_proof_url
+      };
+
+      if (userId) {
+        orderPayload.user_id = userId;
+      }
+
       // Insert Order
       const { error } = await supabase
         .from('orders')
-        .insert([
-          {
-            full_name: formData.fullName,
-            email: formData.email,
-            phone: formData.phone,
-            shipping_address: formData.address,
-            total_amount: totalAmount,
-            order_items: items, // JSONB column
-            status: 'pending',
-            payment_method: paymentMethod,
-            payment_proof_url: payment_proof_url
-          }
-        ]);
+        .insert([orderPayload]);
 
       if (error) {
         console.error("Supabase insert error:", error);
@@ -143,7 +205,7 @@ export default function CheckoutPage() {
               animate={{ opacity: 1, scale: 1 }}
               className="glass p-12 rounded-[3rem] border border-white/5 flex flex-col items-center text-center shadow-2xl relative overflow-hidden bg-[#111116] max-w-2xl mx-auto mt-10"
             >
-              <div className="absolute inset-0 bg-gradient-to-t from-primary/10 to-transparent pointer-events-none" />
+              <div className="absolute inset-0 bg-gradient-to-t from-brand-blue/10 to-transparent pointer-events-none" />
               <div className="w-24 h-24 bg-green-500/20 rounded-full flex items-center justify-center mb-8 relative">
                 <div className="absolute inset-0 rounded-full bg-green-500/20 animate-ping" />
                 <CheckCircle2 className="w-12 h-12 text-green-400" />
@@ -156,7 +218,7 @@ export default function CheckoutPage() {
               </p>
               <Link
                 href="/categories"
-                className="py-5 px-10 bg-white text-black hover:bg-gray-200 rounded-2xl font-black text-xs uppercase tracking-widest transition-all hover:scale-[1.02] active:scale-[0.98] shadow-xl"
+                className="py-5 px-10 bg-brand-blue text-white hover:bg-brand-blue/80 rounded-2xl font-black text-xs uppercase tracking-widest transition-all hover:scale-[1.02] active:scale-[0.98] shadow-xl shadow-brand-blue/20"
               >
                 Retour au catalogue
               </Link>
@@ -192,9 +254,9 @@ export default function CheckoutPage() {
                           type="text"
                           name="fullName"
                           required
-                          value={formData.fullName}
-                          onChange={handleInputChange}
-                          className="w-full bg-black/50 border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-white font-medium outline-none focus:border-primary/50 transition-colors"
+                          value={fullName}
+                          onChange={(e) => setFullName(e.target.value)}
+                          className="w-full bg-black/50 border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-white font-medium outline-none focus:border-brand-blue/50 transition-colors"
                           placeholder="Jean Dupont"
                         />
                       </div>
@@ -209,9 +271,9 @@ export default function CheckoutPage() {
                             type="email"
                             name="email"
                             required
-                            value={formData.email}
-                            onChange={handleInputChange}
-                            className="w-full bg-black/50 border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-white font-medium outline-none focus:border-primary/50 transition-colors"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            className="w-full bg-black/50 border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-white font-medium outline-none focus:border-brand-blue/50 transition-colors"
                             placeholder="jean@example.com"
                           />
                         </div>
@@ -224,9 +286,9 @@ export default function CheckoutPage() {
                             type="tel"
                             name="phone"
                             required
-                            value={formData.phone}
-                            onChange={handleInputChange}
-                            className="w-full bg-black/50 border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-white font-medium outline-none focus:border-primary/50 transition-colors"
+                            value={phone}
+                            onChange={(e) => setPhone(e.target.value)}
+                            className="w-full bg-black/50 border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-white font-medium outline-none focus:border-brand-blue/50 transition-colors"
                             placeholder="+212 6 00 00 00 00"
                           />
                         </div>
@@ -241,9 +303,9 @@ export default function CheckoutPage() {
                           name="address"
                           required
                           rows={3}
-                          value={formData.address}
-                          onChange={handleInputChange}
-                          className="w-full bg-black/50 border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-white font-medium outline-none resize-none focus:border-primary/50 transition-colors"
+                          value={address}
+                          onChange={(e) => setAddress(e.target.value)}
+                          className="w-full bg-black/50 border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-white font-medium outline-none resize-none focus:border-brand-blue/50 transition-colors"
                           placeholder="123 Rue de la Liberté, Casablanca"
                         />
                       </div>
@@ -256,25 +318,25 @@ export default function CheckoutPage() {
                     
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       {/* Livraison */}
-                      <label className={`cursor-pointer border rounded-2xl p-4 transition-all relative overflow-hidden group ${paymentMethod === 'livraison' ? 'bg-primary/10 border-primary' : 'bg-black/40 border-white/10 hover:border-white/20'}`}>
+                      <label className={`cursor-pointer border rounded-2xl p-4 transition-all relative overflow-hidden group ${paymentMethod === 'livraison' ? 'bg-brand-blue/10 border-brand-blue' : 'bg-black/40 border-white/10 hover:border-white/20'}`}>
                         <input type="radio" name="paymentMethod" value="livraison" checked={paymentMethod === 'livraison'} onChange={() => setPaymentMethod('livraison')} className="hidden" />
-                        <Truck className={`w-5 h-5 mb-3 transition-colors ${paymentMethod === 'livraison' ? 'text-primary' : 'text-slate-500 group-hover:text-white'}`} />
+                        <Truck className={`w-5 h-5 mb-3 transition-colors ${paymentMethod === 'livraison' ? 'text-brand-blue' : 'text-slate-500 group-hover:text-white'}`} />
                         <span className="block text-sm font-bold text-white mb-1">Livraison</span>
                         <span className="block text-[10px] text-slate-400">Paiement à la livraison</span>
                       </label>
 
                       {/* Carte */}
-                      <label className={`cursor-pointer border rounded-2xl p-4 transition-all relative overflow-hidden group ${paymentMethod === 'carte' ? 'bg-primary/10 border-primary' : 'bg-black/40 border-white/10 hover:border-white/20'}`}>
+                      <label className={`cursor-pointer border rounded-2xl p-4 transition-all relative overflow-hidden group ${paymentMethod === 'carte' ? 'bg-brand-blue/10 border-brand-blue' : 'bg-black/40 border-white/10 hover:border-white/20'}`}>
                         <input type="radio" name="paymentMethod" value="carte" checked={paymentMethod === 'carte'} onChange={() => setPaymentMethod('carte')} className="hidden" />
-                        <CardIcon className={`w-5 h-5 mb-3 transition-colors ${paymentMethod === 'carte' ? 'text-primary' : 'text-slate-500 group-hover:text-white'}`} />
+                        <CardIcon className={`w-5 h-5 mb-3 transition-colors ${paymentMethod === 'carte' ? 'text-brand-blue' : 'text-slate-500 group-hover:text-white'}`} />
                         <span className="block text-sm font-bold text-white mb-1">Carte Bancaire</span>
                         <span className="block text-[10px] text-slate-400">Paiement sécurisé</span>
                       </label>
 
                       {/* RIB */}
-                      <label className={`cursor-pointer border rounded-2xl p-4 transition-all relative overflow-hidden group ${paymentMethod === 'rib' ? 'bg-primary/10 border-primary' : 'bg-black/40 border-white/10 hover:border-white/20'}`}>
+                      <label className={`cursor-pointer border rounded-2xl p-4 transition-all relative overflow-hidden group ${paymentMethod === 'rib' ? 'bg-brand-blue/10 border-brand-blue' : 'bg-black/40 border-white/10 hover:border-white/20'}`}>
                         <input type="radio" name="paymentMethod" value="rib" checked={paymentMethod === 'rib'} onChange={() => setPaymentMethod('rib')} className="hidden" />
-                        <Building className={`w-5 h-5 mb-3 transition-colors ${paymentMethod === 'rib' ? 'text-primary' : 'text-slate-500 group-hover:text-white'}`} />
+                        <Building className={`w-5 h-5 mb-3 transition-colors ${paymentMethod === 'rib' ? 'text-brand-blue' : 'text-slate-500 group-hover:text-white'}`} />
                         <span className="block text-sm font-bold text-white mb-1">Virement (RIB)</span>
                         <span className="block text-[10px] text-slate-400">Télécharger le reçu</span>
                       </label>
@@ -292,7 +354,7 @@ export default function CheckoutPage() {
                           <div className="p-4 bg-white/5 rounded-xl border border-white/10 text-xs text-slate-300 font-medium">
                             <p className="mb-3">Veuillez effectuer le virement sur le compte suivant :</p>
                             <div className="font-mono text-white bg-black/80 p-4 rounded-xl border border-white/5 text-center shadow-inner">
-                              <span className="block text-[10px] text-primary font-black uppercase tracking-widest mb-1">Banque CIH</span>
+                              <span className="block text-[10px] text-brand-yellow font-black uppercase tracking-widest mb-1">Banque CIH</span>
                               <span className="text-lg tracking-wider">0000 1111 2222 3333</span>
                             </div>
                           </div>
@@ -304,7 +366,7 @@ export default function CheckoutPage() {
                               accept="image/*,.pdf" 
                               required={paymentMethod === 'rib'}
                               onChange={(e) => setPaymentProof(e.target.files?.[0] || null)}
-                              className="w-full bg-black/50 border border-white/10 rounded-2xl py-3 px-4 text-white font-medium outline-none text-sm file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-black file:bg-primary file:text-white hover:file:bg-primary/80 transition-all cursor-pointer"
+                              className="w-full bg-black/50 border border-white/10 rounded-2xl py-3 px-4 text-white font-medium outline-none text-sm file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-black file:bg-brand-blue file:text-white hover:file:bg-brand-blue/80 transition-all cursor-pointer"
                             />
                           </div>
                         </motion.div>
@@ -315,7 +377,7 @@ export default function CheckoutPage() {
                   <button
                     type="submit"
                     disabled={isSubmitting || items.length === 0}
-                    className="w-full py-5 rounded-2xl bg-white text-black font-black uppercase text-sm tracking-widest flex items-center justify-center gap-3 hover:bg-gray-200 transition-all hover:scale-[1.02] active:scale-[0.98] shadow-xl disabled:opacity-50 disabled:pointer-events-none"
+                    className="w-full py-5 rounded-2xl bg-brand-blue text-white font-black uppercase text-sm tracking-widest flex items-center justify-center gap-3 hover:bg-brand-blue/90 transition-all hover:scale-[1.02] active:scale-[0.98] shadow-xl shadow-brand-blue/20 disabled:opacity-50 disabled:pointer-events-none"
                   >
                     {isSubmitting ? (
                       <><Loader2 className="w-5 h-5 animate-spin" /> Traitement en cours...</>
@@ -333,7 +395,7 @@ export default function CheckoutPage() {
               <div className="lg:col-span-2">
                 <div className="glass p-8 rounded-[2.5rem] border border-white/5 sticky top-32 bg-[#111116] shadow-2xl">
                   <div className="flex items-center gap-3 mb-8 pb-6 border-b border-white/10">
-                    <CreditCard className="w-6 h-6 text-primary" />
+                    <CreditCard className="w-6 h-6 text-brand-blue" />
                     <h2 className="text-xl font-black uppercase tracking-tighter text-white">Résumé</h2>
                   </div>
 
@@ -345,7 +407,7 @@ export default function CheckoutPage() {
                           {item.finalMockup && (
                             <img src={item.finalMockup} alt="" className="absolute inset-0 w-full h-full object-contain z-10" />
                           )}
-                          <div className="absolute -top-1 -right-1 w-5 h-5 bg-primary text-white rounded-full flex items-center justify-center text-[10px] font-black z-20">
+                          <div className="absolute -top-1 -right-1 w-5 h-5 bg-brand-blue text-white rounded-full flex items-center justify-center text-[10px] font-black z-20">
                             {item.quantity}
                           </div>
                         </div>
@@ -353,7 +415,7 @@ export default function CheckoutPage() {
                           <h4 className="text-sm font-black uppercase tracking-tight text-white line-clamp-1">{item.name}</h4>
                           <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Taille: {item.size}</p>
                         </div>
-                        <div className="text-sm font-black italic text-primary">
+                        <div className="text-sm font-black italic text-brand-yellow">
                           {item.price * item.quantity} MAD
                         </div>
                       </div>
@@ -373,7 +435,7 @@ export default function CheckoutPage() {
 
                   <div className="flex justify-between items-end border-t border-white/10 pt-6 mt-6">
                     <span className="text-sm font-black uppercase tracking-widest text-slate-500">Total à payer</span>
-                    <span className="text-4xl font-black italic text-primary">{totalAmount} MAD</span>
+                    <span className="text-4xl font-black italic text-brand-yellow">{totalAmount} MAD</span>
                   </div>
                 </div>
               </div>

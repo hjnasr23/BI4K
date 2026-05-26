@@ -12,12 +12,12 @@ export default function EditorPage() {
       <Navbar />
 
       <main className="flex-grow relative pt-20 flex flex-col">
-        {/* Immersive Mesh Background */}
-        <div className="absolute inset-0 pointer-events-none overflow-hidden">
-           <div className="absolute top-[-20%] left-[-10%] w-[60%] h-[60%] bg-primary/10 rounded-full blur-[120px] animate-blob" />
-           <div className="absolute bottom-[-10%] right-[-5%] w-[50%] h-[50%] bg-secondary/10 rounded-full blur-[120px] animate-blob animation-delay-2000" />
-           <div className="absolute top-[20%] right-[10%] w-[40%] h-[40%] bg-accent/5 rounded-full blur-[120px] animate-blob animation-delay-4000" />
-        </div>
+         {/* Immersive Mesh Background */}
+         <div className="absolute inset-0 pointer-events-none overflow-hidden">
+            <div className="absolute top-[-20%] left-[-10%] w-[60%] h-[60%] bg-brand-blue/10 rounded-full blur-[120px] animate-blob" />
+            <div className="absolute bottom-[-10%] right-[-5%] w-[50%] h-[50%] bg-brand-yellow/10 rounded-full blur-[120px] animate-blob animation-delay-2000" />
+            <div className="absolute top-[20%] right-[10%] w-[40%] h-[40%] bg-brand-yellow/5 rounded-full blur-[120px] animate-blob animation-delay-4000" />
+         </div>
 
         <div className="flex-grow container mx-auto px-4 md:px-8 relative z-10 flex flex-col">
           <header className="flex flex-col md:flex-row items-center justify-between py-8 animate-reveal">
@@ -29,8 +29,8 @@ export default function EditorPage() {
           <div className="flex-grow pb-8 min-h-0">
             <Suspense fallback={
               <div className="flex flex-col justify-center items-center h-full gap-6">
-                <div className="w-20 h-20 rounded-full border-4 border-primary/20 border-t-primary animate-spin"></div>
-                <p className="font-black uppercase tracking-[0.4em] text-primary/60 text-xs">Calibrating Studio</p>
+                 <div className="w-20 h-20 rounded-full border-4 border-brand-blue/20 border-t-brand-blue animate-spin"></div>
+                 <p className="font-black uppercase tracking-[0.4em] text-brand-blue/60 text-xs">Calibrating Studio</p>
               </div>
             }>
               <TShirtEditor />

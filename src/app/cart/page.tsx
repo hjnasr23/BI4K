@@ -29,8 +29,8 @@ export default function CartPage() {
   if (!mounted) {
     return (
       <div className="min-h-screen bg-background text-foreground flex flex-col justify-center items-center gap-4">
-        <div className="w-12 h-12 rounded-full border-4 border-primary/20 border-t-primary animate-spin"></div>
-        <p className="text-[10px] font-black uppercase tracking-[0.3em] text-primary">Chargement de votre panier...</p>
+        <div className="w-12 h-12 rounded-full border-4 border-brand-blue/20 border-t-brand-blue animate-spin"></div>
+        <p className="text-[10px] font-black uppercase tracking-[0.3em] text-brand-blue">Chargement de votre panier...</p>
       </div>
     );
   }
@@ -41,7 +41,7 @@ export default function CartPage() {
 
       <main className="flex-1 container mx-auto px-4 pt-32 pb-20 max-w-5xl">
         <div className="flex items-center gap-3 mb-10">
-          <ShoppingCart className="w-8 h-8 text-primary" />
+          <ShoppingCart className="w-8 h-8 text-brand-blue" />
           <h1 className="text-4xl font-black uppercase tracking-tighter text-white">Mon Panier / Your Cart</h1>
         </div>
 
@@ -51,7 +51,7 @@ export default function CartPage() {
               <ShoppingCart className="w-8 h-8 text-white/20" />
             </div>
             <h2 className="text-2xl font-black uppercase tracking-widest text-white/50 mb-6">Votre panier est vide / Cart is empty</h2>
-            <Link href="/categories" className="px-8 py-4 bg-primary text-white font-black uppercase text-xs tracking-widest rounded-2xl hover:scale-105 transition-transform shadow-xl shadow-primary/20">
+            <Link href="/categories" className="px-8 py-4 bg-brand-blue text-white font-black uppercase text-xs tracking-widest rounded-2xl hover:bg-brand-blue/80 hover:scale-105 transition-transform shadow-xl shadow-brand-blue/20">
               Retour au catalogue / Return to Catalog
             </Link>
           </div>
@@ -95,7 +95,7 @@ export default function CartPage() {
                       </div>
 
                       <div className="text-right flex flex-col items-end">
-                        <span className="text-lg font-black italic text-primary">{item.price * item.quantity} MAD</span>
+                        <span className="text-lg font-black italic text-brand-yellow">{item.price * item.quantity} MAD</span>
                         <button
                           onClick={() => removeFromCart(item.cartItemId)}
                           className="text-[10px] uppercase font-black tracking-widest text-rose-400 hover:text-rose-300 mt-2 flex items-center gap-1 transition-colors"
@@ -127,21 +127,21 @@ export default function CartPage() {
 
                 <div className="flex justify-between items-end mb-6">
                   <span className="text-sm font-black uppercase tracking-widest text-foreground/50">Total</span>
-                  <span className="text-4xl font-black italic text-primary">{total} MAD</span>
+                  <span className="text-4xl font-black italic text-brand-yellow">{total} MAD</span>
                 </div>
 
                 <div className="mb-8 p-4 rounded-2xl bg-white/5 border border-white/5 text-center">
                   <p className="text-[9px] font-black uppercase tracking-widest text-slate-400">
                     🚚 Livraison / Shipping
                   </p>
-                  <p className="text-[11px] font-bold text-primary mt-1 uppercase tracking-wider">
+                  <p className="text-[11px] font-bold text-brand-blue mt-1 uppercase tracking-wider">
                     Calculé à l'étape suivante / Calculated at checkout
                   </p>
                 </div>
 
                 <button
                   onClick={handleCheckout}
-                  className="w-full py-5 rounded-2xl bg-white text-black font-black uppercase text-sm tracking-widest flex items-center justify-center gap-2 hover:bg-gray-200 transition-all hover:scale-[1.02] active:scale-[0.98] shadow-xl"
+                  className="w-full py-5 rounded-2xl bg-brand-blue text-white font-black uppercase text-sm tracking-widest flex items-center justify-center gap-2 hover:bg-brand-blue/80 transition-all hover:scale-[1.02] active:scale-[0.98] shadow-xl shadow-brand-blue/20"
                 >
                   COMMANDER (CHECKOUT) <ArrowRight className="w-4 h-4" />
                 </button>

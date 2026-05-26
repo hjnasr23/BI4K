@@ -42,7 +42,7 @@ export default function ClientCart({ initialItems, cartId }: { initialItems: Car
       
       <main className="flex-1 container mx-auto px-4 pt-32 pb-20 max-w-5xl">
         <div className="flex items-center gap-3 mb-10">
-          <ShoppingCart className="w-8 h-8 text-primary" />
+          <ShoppingCart className="w-8 h-8 text-brand-blue" />
           <h1 className="text-4xl font-black uppercase tracking-tighter">Your Studio Cart</h1>
         </div>
 
@@ -52,7 +52,7 @@ export default function ClientCart({ initialItems, cartId }: { initialItems: Car
               <ShoppingCart className="w-8 h-8 text-white/20" />
             </div>
             <h2 className="text-2xl font-black uppercase tracking-widest text-white/50 mb-4">Cart is empty</h2>
-            <Link href="/categories" className="px-8 py-4 bg-primary text-white font-black uppercase text-xs tracking-widest rounded-2xl hover:scale-105 transition-transform">
+            <Link href="/categories" className="px-8 py-4 bg-brand-blue text-white font-black uppercase text-xs tracking-widest rounded-2xl hover:bg-brand-blue/80 shadow-lg shadow-brand-blue/20 transition-transform">
               Return to Studio
             </Link>
           </div>
@@ -65,7 +65,7 @@ export default function ClientCart({ initialItems, cartId }: { initialItems: Car
                 <div key={item.id} className="glass p-6 rounded-[2rem] border border-white/5 flex gap-6 relative">
                   {updating === item.id && (
                     <div className="absolute inset-0 bg-background/50 backdrop-blur-sm z-10 flex items-center justify-center rounded-[2rem]">
-                      <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                      <div className="w-6 h-6 border-2 border-brand-blue border-t-transparent rounded-full animate-spin" />
                     </div>
                   )}
                   
@@ -107,10 +107,10 @@ export default function ClientCart({ initialItems, cartId }: { initialItems: Car
                        </div>
                        
                        <div className="text-right flex flex-col items-end">
-                         <span className="text-lg font-black italic text-primary">${(item.price_unit * item.quantity).toFixed(2)}</span>
-                         <button onClick={() => handleRemove(item.id)} className="text-[10px] uppercase font-black tracking-widest text-rose-400 hover:text-rose-300 mt-2 flex items-center gap-1 transition-colors">
-                           <Trash2 className="w-3 h-3" /> Remove
-                         </button>
+                          <span className="text-lg font-black italic text-brand-yellow">${(item.price_unit * item.quantity).toFixed(2)}</span>
+                          <button onClick={() => handleRemove(item.id)} className="text-[10px] uppercase font-black tracking-widest text-rose-400 hover:text-rose-300 mt-2 flex items-center gap-1 transition-colors">
+                            <Trash2 className="w-3 h-3" /> Remove
+                          </button>
                        </div>
                     </div>
                   </div>
@@ -140,10 +140,10 @@ export default function ClientCart({ initialItems, cartId }: { initialItems: Car
                  
                  <div className="flex justify-between items-end mb-8">
                    <span className="text-sm font-black uppercase tracking-widest text-foreground/50">Total</span>
-                   <span className="text-4xl font-black italic text-primary">${subtotal.toFixed(2)}</span>
+                   <span className="text-4xl font-black italic text-brand-yellow">${subtotal.toFixed(2)}</span>
                  </div>
                  
-                 <Link href="/checkout" className="w-full py-5 rounded-2xl bg-white text-black font-black uppercase text-sm tracking-widest flex items-center justify-center gap-2 hover:bg-gray-200 transition-colors shadow-xl">
+                 <Link href="/checkout" className="w-full py-5 rounded-2xl bg-brand-blue text-white font-black uppercase text-sm tracking-widest flex items-center justify-center gap-2 hover:bg-brand-blue/80 transition-colors shadow-xl shadow-brand-blue/20">
                    Secure Checkout <ArrowRight className="w-4 h-4" />
                  </Link>
                  

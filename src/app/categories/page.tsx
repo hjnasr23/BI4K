@@ -17,13 +17,13 @@ interface Category {
 
 // Gradient accents cycled across cards for visual variety
 const GRADIENT_ACCENTS = [
-  'from-indigo-500/40',
+  'from-brand-blue/40',
   'from-rose-500/40',
   'from-amber-500/40',
   'from-emerald-500/40',
-  'from-cyan-500/40',
-  'from-fuchsia-500/40',
-  'from-violet-500/40',
+  'from-brand-blue/40',
+  'from-brand-yellow/40',
+  'from-brand-yellow/40',
   'from-teal-500/40',
 ];
 
@@ -62,7 +62,7 @@ const CategoryCard = ({ category, index, lang }: { category: Category; index: nu
     >
       <Link
         href={`/categories/${category.slug}`}
-        className="group relative h-[400px] rounded-[3rem] bg-[#0d0d12] border border-white/5 flex flex-col justify-between overflow-hidden hover:border-primary/30 transition-all duration-700 shadow-2xl"
+        className="group relative h-[400px] rounded-[3rem] bg-[#0d0d12] border border-white/5 flex flex-col justify-between overflow-hidden hover:border-brand-blue/30 transition-all duration-700 shadow-2xl"
       >
         {/* Background Image */}
         {category.image_url && (
@@ -86,7 +86,7 @@ const CategoryCard = ({ category, index, lang }: { category: Category; index: nu
         </div>
 
         <div className="relative z-10 p-10 flex items-center justify-between">
-          <div className="flex items-center gap-3 text-primary font-black uppercase tracking-[0.3em] text-[10px] opacity-0 group-hover:opacity-100 translate-x-[-20px] group-hover:translate-x-0 transition-all duration-500">
+          <div className="flex items-center gap-3 text-brand-yellow font-black uppercase tracking-[0.3em] text-[10px] opacity-0 group-hover:opacity-100 translate-x-[-20px] group-hover:translate-x-0 transition-all duration-500">
             {lang === 'fr' ? 'Explorer' : 'Explore'} <ArrowRight className="w-4 h-4" />
           </div>
         </div>
@@ -128,8 +128,8 @@ export default function CategoriesPage() {
 
       <main className="relative pt-48 pb-20">
         {/* Spatial Background Blobs */}
-        <div className="absolute top-0 right-[-10%] w-[60%] h-[60%] bg-primary/5 rounded-full blur-[160px] animate-blob pointer-events-none opacity-50" />
-        <div className="absolute bottom-0 left-[-10%] w-[60%] h-[60%] bg-accent/5 rounded-full blur-[160px] animate-blob animation-delay-2000 pointer-events-none opacity-50" />
+        <div className="absolute top-0 right-[-10%] w-[60%] h-[60%] bg-brand-blue/5 rounded-full blur-[160px] animate-blob pointer-events-none opacity-50" />
+        <div className="absolute bottom-0 left-[-10%] w-[60%] h-[60%] bg-brand-yellow/5 rounded-full blur-[160px] animate-blob animation-delay-2000 pointer-events-none opacity-50" />
 
         <div className="container mx-auto px-6 relative z-10">
           {/* Page Header */}
@@ -141,11 +141,11 @@ export default function CategoriesPage() {
           >
             <div className="flex items-center justify-between mb-12">
               <h1 className="text-5xl md:text-6xl font-black tracking-tighter uppercase italic flex items-center gap-5">
-                <div className="w-1.5 h-12 bg-primary rounded-full shadow-[0_0_20px_rgba(99,102,241,0.5)]" />
+                <div className="w-1.5 h-12 bg-brand-blue rounded-full shadow-[0_0_20px_rgba(74,144,226,0.5)]" />
                 {lang === 'fr' ? 'Catalogue' : 'Catalogue'}
               </h1>
               {!loading && categories.length > 0 && (
-                <div className="px-5 py-2 rounded-full bg-primary/5 border border-primary/20 text-primary text-[9px] font-black uppercase tracking-[0.3em]">
+                <div className="px-5 py-2 rounded-full bg-brand-blue/5 border border-brand-blue/20 text-brand-yellow text-[9px] font-black uppercase tracking-[0.3em]">
                   {categories.length} {lang === 'fr' ? 'Catégories' : 'Categories'}
                 </div>
               )}
@@ -177,7 +177,7 @@ export default function CategoriesPage() {
               <p className="text-sm text-foreground/30 mb-8">{error}</p>
               <button
                 onClick={() => window.location.reload()}
-                className="inline-flex items-center gap-2 px-8 py-4 rounded-2xl bg-primary text-white font-black text-xs uppercase tracking-widest hover:scale-105 active:scale-95 transition-all shadow-xl shadow-primary/20"
+                className="inline-flex items-center gap-2 px-8 py-4 rounded-2xl bg-brand-blue hover:bg-brand-blue/90 text-white font-black text-xs uppercase tracking-widest hover:scale-105 active:scale-95 transition-all shadow-xl shadow-brand-blue/20"
               >
                 {lang === 'fr' ? 'Réessayer' : 'Retry'}
               </button>

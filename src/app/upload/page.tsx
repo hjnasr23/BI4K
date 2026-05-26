@@ -342,10 +342,10 @@ function UploadContent() {
                       <img src={designUrl} className="max-w-[220px] max-h-[300px] object-contain drop-shadow-2xl pointer-events-none" alt="Custom Design" />
                     </div>
                   ) : (
-                    <label className="flex flex-col items-center justify-center p-8 border-2 border-dashed border-white/10 rounded-[2.5rem] bg-black/60 hover:bg-black/80 hover:border-primary/50 transition-all cursor-pointer group text-center pointer-events-auto max-w-[280px]">
+                    <label className="flex flex-col items-center justify-center p-8 border-2 border-dashed border-white/10 rounded-[2.5rem] bg-black/60 hover:bg-black/80 hover:border-brand-blue/50 transition-all cursor-pointer group text-center pointer-events-auto max-w-[280px]">
                       <input type="file" accept=".png, image/png" className="hidden" onChange={handleFileChange} />
-                      <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                        <UploadCloud className="w-6 h-6 text-primary" />
+                      <div className="w-12 h-12 rounded-2xl bg-brand-blue/10 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                        <UploadCloud className="w-6 h-6 text-brand-blue" />
                       </div>
                       <p className="font-black uppercase text-[10px] tracking-widest mb-1 text-white">Importer le design</p>
                       <p className="text-[8px] text-foreground/40 font-bold uppercase tracking-[0.2em] mb-3">Format PNG uniquement</p>
@@ -363,14 +363,14 @@ function UploadContent() {
         {/* Simplified Right Sidebar - Summary & Checkout */}
         <aside className="w-full lg:w-[350px] space-y-6 shrink-0">
           <div className="bg-[#111116] border border-white/5 rounded-[2.5rem] p-8 shadow-2xl animate-reveal">
-            <h3 className="text-xs font-black uppercase tracking-[0.4em] text-primary mb-8 flex items-center gap-3">
-              <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+            <h3 className="text-xs font-black uppercase tracking-[0.4em] text-brand-yellow mb-8 flex items-center gap-3">
+              <div className="w-1.5 h-1.5 rounded-full bg-brand-yellow animate-pulse" />
               Order Summary
             </h3>
 
             {dbLoading ? (
               <div className="py-8 flex justify-center">
-                <Loader2 className="w-5 h-5 animate-spin text-primary" />
+                <Loader2 className="w-5 h-5 animate-spin text-brand-blue" />
               </div>
             ) : (
               <div className="space-y-6 mb-8">
@@ -384,7 +384,7 @@ function UploadContent() {
                 </div>
                 <div className="flex justify-between items-center">
                   <p className="text-[10px] font-bold text-foreground/40 uppercase tracking-widest">Unit Price</p>
-                  <p className="text-lg font-black text-primary italic">{currentPrice} MAD</p>
+                  <p className="text-lg font-black text-brand-yellow italic">{currentPrice} MAD</p>
                 </div>
               </div>
             )}
@@ -410,7 +410,7 @@ function UploadContent() {
                     step="0.01"
                     value={scale}
                     onChange={(e) => setScale(parseFloat(e.target.value))}
-                    className="w-full h-1.5 bg-white/10 rounded-lg appearance-none cursor-pointer accent-primary focus:outline-none"
+                    className="w-full h-1.5 bg-white/10 rounded-lg appearance-none cursor-pointer accent-brand-blue focus:outline-none"
                   />
                   <button onClick={() => { setOffsetX(0); setOffsetY(0); setScale(1); }} className="w-full py-2 rounded-xl bg-white/5 hover:bg-white/10 text-[8px] font-black uppercase tracking-widest border border-white/5 text-slate-400 transition-colors">
                     Reset Alignment
@@ -441,16 +441,16 @@ function UploadContent() {
             <button
               onClick={() => handleAddToCart()}
               disabled={!designFile}
-              className={`w-full py-5 rounded-2xl flex items-center justify-center gap-3 font-black text-xs uppercase tracking-[0.3em] transition-all relative overflow-hidden group/order ${!designFile ? 'bg-white/5 text-foreground/20 cursor-not-allowed' : 'bg-primary text-white hover:scale-[1.02] active:scale-[0.98] shadow-xl shadow-primary/20'}`}
+              className={`w-full py-5 rounded-2xl flex items-center justify-center gap-3 font-black text-xs uppercase tracking-[0.3em] transition-all relative overflow-hidden group/order ${!designFile ? 'bg-white/5 text-foreground/20 cursor-not-allowed' : 'bg-brand-blue text-white hover:scale-[1.02] active:scale-[0.98] shadow-xl shadow-brand-blue/20'}`}
             >
               <PackageCheck className="w-5 h-5" />
               Ajouter au panier
             </button>
           </div>
 
-          <div className="bg-primary/5 border border-primary/20 rounded-3xl p-5 flex items-start gap-3">
-            <Sparkles className="w-4 h-4 text-primary shrink-0 mt-0.5 animate-pulse" />
-            <p className="text-[9px] font-bold text-primary/80 leading-relaxed uppercase tracking-wider">
+          <div className="bg-brand-blue/5 border border-brand-blue/20 rounded-3xl p-5 flex items-start gap-3">
+            <Sparkles className="w-4 h-4 text-brand-yellow shrink-0 mt-0.5 animate-pulse" />
+            <p className="text-[9px] font-bold text-brand-yellow leading-relaxed uppercase tracking-wider">
               Nos moteurs d'impression haute fidélité garantissent une précision des couleurs à 99,9%.
             </p>
           </div>
@@ -476,7 +476,7 @@ function UploadContent() {
               </button>
               <Link 
                 href="/cart"
-                className="flex-grow py-4 bg-primary hover:bg-primary/90 rounded-2xl font-black text-[10px] uppercase tracking-widest text-white transition-all shadow-lg shadow-primary/20 flex items-center justify-center gap-1.5 hover:scale-[1.02] active:scale-[0.98]"
+                className="flex-grow py-4 bg-brand-blue hover:bg-brand-blue/90 rounded-2xl font-black text-[10px] uppercase tracking-widest text-white transition-all shadow-lg shadow-brand-blue/20 flex items-center justify-center gap-1.5 hover:scale-[1.02] active:scale-[0.98]"
               >
                 Voir le panier <ArrowRight className="w-4 h-4" />
               </Link>
@@ -502,8 +502,8 @@ export default function UploadPage() {
   return (
     <Suspense fallback={
       <div className="min-h-screen bg-[#0a0a0c] flex flex-col justify-center items-center gap-4">
-        <div className="w-12 h-12 rounded-full border-4 border-primary/20 border-t-primary animate-spin"></div>
-        <p className="text-[10px] font-black uppercase tracking-[0.3em] text-primary">Chargement de l'atelier...</p>
+        <div className="w-12 h-12 rounded-full border-4 border-brand-blue/20 border-t-brand-blue animate-spin"></div>
+        <p className="text-[10px] font-black uppercase tracking-[0.3em] text-brand-blue">Chargement de l'atelier...</p>
       </div>
     }>
       <UploadContent />

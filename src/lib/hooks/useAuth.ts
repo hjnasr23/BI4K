@@ -10,7 +10,7 @@ import type { UserProfile } from '@/lib/db/types';
 
 export interface AuthUser {
   supabaseUser: User;
-  profile: UserProfile | null;
+  profile: any | null;
 }
 
 interface UseAuthReturn {
@@ -27,13 +27,13 @@ export function useAuth(): UseAuthReturn {
   const [loading, setLoading] = useState(true);
   const supabase = createClient();
 
-  // ── Fetch UserProfile and merge with Supabase user ───────
+  // ── Fetch profile and merge with Supabase user ───────
   const loadProfile = useCallback(async (supabaseUser: User) => {
     const { data: profile } = await supabase
-      .from('UserProfile')
+      .from('profiles')
       .select('*')
       .eq('id', supabaseUser.id)
-      .single();
+      .maybeSingle();
 
     setUser({ supabaseUser, profile: profile ?? null });
   }, [supabase]);
@@ -76,39 +76,61 @@ export function useAuth(): UseAuthReturn {
     password: string,
     fullName?: string
   ): Promise<{ error: string | null; requiresConfirmation?: boolean }> => {
-    const res = await fetch('/api/auth/signup', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password, fullName }),
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: { full_name: fullName ?? '' },
+      },
     });
-    const json = await res.json();
-    if (!res.ok) return { error: json.error };
-    return { error: null, requiresConfirmation: json.requiresConfirmation };
-  }, []);
+
+    if (error) return { error: error.message };
+
+    // Create / ensure user profile
+    if (data.user) {
+      try {
+        await supabase.from('profiles').upsert({
+          id: data.user.id,
+          full_name: fullName ?? '',
+          preferred_lang: 'fr',
+        });
+      } catch (dbErr) {
+        console.error('Failed to upsert profiles:', dbErr);
+      }
+    }
+
+    return { 
+      error: null, 
+      requiresConfirmation: data.session === null 
+    };
+  }, [supabase]);
 
   // ── Sign In ───────────────────────────────────────────────
   const signIn = useCallback(async (
     email: string,
     password: string
   ): Promise<{ error: string | null }> => {
-    // Use Supabase client directly so the session is persisted in the browser.
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) return { error: error.message };
     return { error: null };
-  }, [supabase.auth]);
+  }, [supabase]);
 
   // ── Sign Out ──────────────────────────────────────────────
   const signOut = useCallback(async () => {
-    const session = (await supabase.auth.getSession()).data.session;
-    if (session) {
-      await fetch('/api/auth/signout', {
-        method: 'POST',
-        headers: { 'Authorization': `Bearer ${session.access_token}` },
-      });
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.access_token) {
+        await fetch('/api/auth/signout', {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${session.access_token}` },
+        });
+      }
+    } catch (e) {
+      console.warn('Backend signout call failed:', e);
     }
     await supabase.auth.signOut();
     setUser(null);
-  }, [supabase.auth]);
+  }, [supabase]);
 
   // ── Refresh profile (call after updating UserProfile) ─────
   const refreshProfile = useCallback(async () => {

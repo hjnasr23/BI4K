@@ -77,7 +77,7 @@ export default function OrdersDashboard() {
             case "confirmed":
                 return "bg-blue-500/20 text-blue-300";
             case "shipped":
-                return "bg-purple-500/20 text-purple-300";
+                return "bg-brand-yellow/20 text-brand-yellow";
             case "delivered":
                 return "bg-green-500/20 text-green-300";
             case "cancelled":
@@ -130,7 +130,7 @@ export default function OrdersDashboard() {
                     {loading && (
                         <div className="flex justify-center items-center min-h-64">
                             <div className="animate-spin">
-                                <div className="w-12 h-12 border-4 border-purple-500/30 border-t-purple-500 rounded-full"></div>
+                                <div className="w-12 h-12 border-4 border-brand-blue/30 border-t-brand-blue rounded-full"></div>
                             </div>
                         </div>
                     )}
@@ -150,7 +150,7 @@ export default function OrdersDashboard() {
                             <p className="text-gray-400 mb-8">Vous n&apos;avez pas encore de commandes.</p>
                             <button
                                 onClick={() => router.push("/upload")}
-                                className="px-6 py-2 bg-purple-600 hover:bg-purple-700 rounded-lg transition"
+                                className="px-6 py-2 bg-brand-blue hover:bg-brand-blue/90 rounded-lg transition"
                             >
                                 Créer une nouvelle commande
                             </button>
@@ -163,7 +163,7 @@ export default function OrdersDashboard() {
                             {commandes.map((commande) => (
                                 <div
                                     key={commande.id}
-                                    className="bg-[#1a1a1e] border border-gray-800 rounded-lg overflow-hidden hover:border-purple-500/50 transition group cursor-pointer"
+                                    className="bg-[#1a1a1e] border border-gray-800 rounded-lg overflow-hidden hover:border-brand-blue/50 transition group cursor-pointer"
                                     onClick={() => {
                                         setSelectedCommande(commande);
                                         setIsModalOpen(true);
@@ -200,7 +200,7 @@ export default function OrdersDashboard() {
                                             <div>
                                                 <p className="text-xs text-gray-500 uppercase tracking-wide mb-1">Action</p>
                                                 <button
-                                                    className="text-purple-400 hover:text-purple-300 text-sm font-medium"
+                                                    className="text-brand-yellow hover:text-brand-yellow/80 text-sm font-medium"
                                                     onClick={(e) => {
                                                         e.stopPropagation();
                                                         setSelectedCommande(commande);
@@ -354,7 +354,7 @@ export default function OrdersDashboard() {
                                     router.push(`/customize/${selectedCommande.id}`);
                                     setIsModalOpen(false);
                                 }}
-                                className="flex-1 px-4 py-2 bg-purple-600 hover:bg-purple-700 rounded-lg transition"
+                                className="flex-grow px-4 py-2 bg-brand-blue hover:bg-brand-blue/90 rounded-lg transition text-white"
                             >
                                 Éditer
                             </button>

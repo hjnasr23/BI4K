@@ -47,7 +47,7 @@ export default function ClientProfile({ userEmail, profile, orders }: { userEmai
     switch(status) {
       case 'confirmed': return 'text-blue-400 bg-blue-400/10 border-blue-400/20';
       case 'processing': return 'text-amber-400 bg-amber-400/10 border-amber-400/20';
-      case 'shipped': return 'text-purple-400 bg-purple-400/10 border-purple-400/20';
+      case 'shipped': return 'text-brand-yellow bg-brand-yellow/10 border-brand-yellow/20';
       case 'delivered': return 'text-emerald-400 bg-emerald-400/10 border-emerald-400/20';
       case 'cancelled': return 'text-rose-400 bg-rose-400/10 border-rose-400/20';
       default: return 'text-slate-400 bg-slate-400/10 border-slate-400/20';
@@ -60,8 +60,8 @@ export default function ClientProfile({ userEmail, profile, orders }: { userEmai
       
       <main className="flex-1 container mx-auto px-4 pt-32 pb-20 max-w-6xl">
         <div className="flex items-center gap-3 mb-12">
-          <div className="w-12 h-12 rounded-2xl bg-primary/20 border border-primary/30 flex items-center justify-center">
-            <User className="w-6 h-6 text-primary" />
+          <div className="w-12 h-12 rounded-2xl bg-brand-blue/20 border border-brand-blue/30 flex items-center justify-center">
+            <User className="w-6 h-6 text-brand-blue" />
           </div>
           <div>
             <h1 className="text-4xl font-black uppercase tracking-tighter">Your Studio</h1>
@@ -75,14 +75,14 @@ export default function ClientProfile({ userEmail, profile, orders }: { userEmai
           <div className="lg:col-span-1 space-y-2">
             <button 
               onClick={() => setActiveTab('profile')}
-              className={`w-full flex items-center justify-between p-4 rounded-2xl font-bold uppercase tracking-widest text-xs transition-all ${activeTab === 'profile' ? 'bg-primary text-white shadow-xl shadow-primary/20' : 'bg-white/5 text-foreground/60 hover:bg-white/10 hover:text-white'}`}
+              className={`w-full flex items-center justify-between p-4 rounded-2xl font-bold uppercase tracking-widest text-xs transition-all ${activeTab === 'profile' ? 'bg-brand-blue text-white shadow-xl shadow-brand-blue/20' : 'bg-white/5 text-foreground/60 hover:bg-white/10 hover:text-white'}`}
             >
               <span className="flex items-center gap-3"><Settings className="w-4 h-4" /> Account</span>
               <ChevronRight className={`w-4 h-4 transition-transform ${activeTab === 'profile' ? 'translate-x-1' : ''}`} />
             </button>
             <button 
               onClick={() => setActiveTab('orders')}
-              className={`w-full flex items-center justify-between p-4 rounded-2xl font-bold uppercase tracking-widest text-xs transition-all ${activeTab === 'orders' ? 'bg-primary text-white shadow-xl shadow-primary/20' : 'bg-white/5 text-foreground/60 hover:bg-white/10 hover:text-white'}`}
+              className={`w-full flex items-center justify-between p-4 rounded-2xl font-bold uppercase tracking-widest text-xs transition-all ${activeTab === 'orders' ? 'bg-brand-blue text-white shadow-xl shadow-brand-blue/20' : 'bg-white/5 text-foreground/60 hover:bg-white/10 hover:text-white'}`}
             >
               <span className="flex items-center gap-3"><Package className="w-4 h-4" /> Order History</span>
               <ChevronRight className={`w-4 h-4 transition-transform ${activeTab === 'orders' ? 'translate-x-1' : ''}`} />
@@ -104,43 +104,43 @@ export default function ClientProfile({ userEmail, profile, orders }: { userEmai
                   
                   {/* Personal Info */}
                   <div className="space-y-4">
-                    <h3 className="text-xs font-black uppercase tracking-widest text-primary flex items-center gap-2"><User className="w-4 h-4" /> Personal Information</h3>
+                    <h3 className="text-xs font-black uppercase tracking-widest text-brand-yellow flex items-center gap-2"><User className="w-4 h-4" /> Personal Information</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
                         <label className="block text-[10px] font-bold uppercase tracking-widest text-foreground/50 mb-1.5">Full Name</label>
-                        <input value={fullName} onChange={e => setFullName(e.target.value)} className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 focus:border-primary/50 text-sm outline-none transition-colors" />
+                        <input value={fullName} onChange={e => setFullName(e.target.value)} className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 focus:border-brand-blue/50 text-sm outline-none transition-colors" />
                       </div>
                       <div>
                         <label className="block text-[10px] font-bold uppercase tracking-widest text-foreground/50 mb-1.5">Phone Number</label>
-                        <input value={phone} onChange={e => setPhone(e.target.value)} className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 focus:border-primary/50 text-sm outline-none transition-colors" />
+                        <input value={phone} onChange={e => setPhone(e.target.value)} className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 focus:border-brand-blue/50 text-sm outline-none transition-colors" />
                       </div>
                     </div>
                   </div>
 
                   {/* Shipping Address */}
                   <div className="space-y-4">
-                    <h3 className="text-xs font-black uppercase tracking-widest text-primary flex items-center gap-2"><MapPin className="w-4 h-4" /> Default Shipping Address</h3>
+                    <h3 className="text-xs font-black uppercase tracking-widest text-brand-yellow flex items-center gap-2"><MapPin className="w-4 h-4" /> Default Shipping Address</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="md:col-span-2">
                         <label className="block text-[10px] font-bold uppercase tracking-widest text-foreground/50 mb-1.5">Street Address</label>
-                        <input value={address.street} onChange={e => setAddress({...address, street: e.target.value})} className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 focus:border-primary/50 text-sm outline-none transition-colors" />
+                        <input value={address.street} onChange={e => setAddress({...address, street: e.target.value})} className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 focus:border-brand-blue/50 text-sm outline-none transition-colors" />
                       </div>
                       <div>
                         <label className="block text-[10px] font-bold uppercase tracking-widest text-foreground/50 mb-1.5">City</label>
-                        <input value={address.city} onChange={e => setAddress({...address, city: e.target.value})} className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 focus:border-primary/50 text-sm outline-none transition-colors" />
+                        <input value={address.city} onChange={e => setAddress({...address, city: e.target.value})} className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 focus:border-brand-blue/50 text-sm outline-none transition-colors" />
                       </div>
                       <div>
                         <label className="block text-[10px] font-bold uppercase tracking-widest text-foreground/50 mb-1.5">Postal Code</label>
-                        <input value={address.zip} onChange={e => setAddress({...address, zip: e.target.value})} className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 focus:border-primary/50 text-sm outline-none transition-colors" />
+                        <input value={address.zip} onChange={e => setAddress({...address, zip: e.target.value})} className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 focus:border-brand-blue/50 text-sm outline-none transition-colors" />
                       </div>
                       <div className="md:col-span-2">
                         <label className="block text-[10px] font-bold uppercase tracking-widest text-foreground/50 mb-1.5">Country</label>
-                        <input value={address.country} onChange={e => setAddress({...address, country: e.target.value})} className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 focus:border-primary/50 text-sm outline-none transition-colors" />
+                        <input value={address.country} onChange={e => setAddress({...address, country: e.target.value})} className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 focus:border-brand-blue/50 text-sm outline-none transition-colors" />
                       </div>
                     </div>
                   </div>
 
-                  <button type="submit" disabled={saving} className="px-8 py-4 rounded-xl bg-primary text-white font-black uppercase tracking-widest text-xs hover:bg-primary-hover transition-colors shadow-lg flex items-center gap-2">
+                  <button type="submit" disabled={saving} className="px-8 py-4 rounded-xl bg-brand-blue text-white font-black uppercase tracking-widest text-xs hover:bg-brand-blue/90 transition-colors shadow-lg flex items-center gap-2">
                     {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
                     Save Changes
                   </button>
@@ -171,7 +171,7 @@ export default function ClientProfile({ userEmail, profile, orders }: { userEmai
                           </div>
                           <div>
                             <p className="text-[10px] uppercase font-bold tracking-widest text-foreground/50">Total</p>
-                            <p className="font-black italic text-primary">${order.total_price.toFixed(2)}</p>
+                            <p className="font-black italic text-brand-yellow">${order.total_price.toFixed(2)}</p>
                           </div>
                           <div className="hidden sm:block">
                             <p className="text-[10px] uppercase font-bold tracking-widest text-foreground/50">Order ID</p>
