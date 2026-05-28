@@ -37,13 +37,13 @@ export default function ClientHome({ categories, products }: { categories: Categ
     if (isFr) {
       return (
         <>
-          Sublimez votre <span className="bg-gradient-to-r from-blue-500 to-amber-500 bg-clip-text text-transparent font-extrabold">style</span> grâce à <span className="bg-gradient-to-r from-blue-500 to-amber-500 bg-clip-text text-transparent font-extrabold">l'IA</span>
+          Sublimez votre <span className="bg-gradient-to-r from-blue-500 via-amber-500 to-blue-500 bg-[length:200%_auto] bg-clip-text text-transparent font-extrabold animate-gradient">style grâce à l'IA</span>
         </>
       );
     }
     return (
       <>
-        Elevate Your <span className="bg-gradient-to-r from-blue-500 to-amber-500 bg-clip-text text-transparent font-extrabold">Style</span> with <span className="bg-gradient-to-r from-blue-500 to-amber-500 bg-clip-text text-transparent font-extrabold">AI</span>
+        Elevate your <span className="bg-gradient-to-r from-blue-500 via-amber-500 to-blue-500 bg-[length:200%_auto] bg-clip-text text-transparent font-extrabold animate-gradient">style with AI</span>
       </>
     );
   };
@@ -51,6 +51,16 @@ export default function ClientHome({ categories, products }: { categories: Categ
   return (
     <div className="min-h-screen bg-white dark:bg-[#0a0a0a] text-neutral-900 dark:text-white transition-colors duration-500">
       <Navbar />
+      <style>{`
+        @keyframes gradient {
+          0% { background-position: 0% 50%; }
+          50% { background-position: 100% 50%; }
+          100% { background-position: 0% 50%; }
+        }
+        .animate-gradient {
+          animation: gradient 6s ease infinite;
+        }
+      `}</style>
 
       <main className="relative pt-32 pb-20">
         <div className="container mx-auto px-6 relative z-10">
@@ -63,61 +73,46 @@ export default function ClientHome({ categories, products }: { categories: Categ
             viewport={{ once: true }}
             className="flex flex-col items-center text-center space-y-8 max-w-4xl mx-auto pt-10 pb-20"
           >
-            {/* Soft Blue/Amber Accent Badge */}
+            {/* Elegant Professional Badge */}
             <motion.div 
               variants={itemVariants} 
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-50 dark:bg-blue-950/30 text-amber-600 dark:text-amber-400 border border-blue-100 dark:border-blue-900/30 text-xs font-semibold uppercase tracking-wider"
+              className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-neutral-800 text-[10px] tracking-widest text-neutral-400 font-medium uppercase relative z-10 bg-[#0a0a0a]/50 backdrop-blur-sm"
             >
-              <Sparkles className="w-3.5 h-3.5 text-blue-500" />
-              {cleanBadge}
+              PLATEFORME DE PERSONNALISATION INTELLIGENTE
             </motion.div>
             
-            {/* Large Accent-Driven Heading */}
-            <motion.h1 
-              variants={itemVariants} 
-              className="text-4xl sm:text-6xl md:text-7xl font-extrabold text-neutral-900 dark:text-white tracking-tight leading-none"
-            >
-              {renderHeroTitle()}
-            </motion.h1>
+            {/* Headline with Absolute Blurred Background Glows */}
+            <div className="relative w-full flex flex-col items-center py-4">
+              <div className="absolute top-1/2 left-1/4 -translate-y-1/2 w-80 h-80 rounded-full bg-blue-500 blur-[120px] opacity-20 pointer-events-none z-0" />
+              <div className="absolute top-1/2 right-1/4 -translate-y-1/2 w-80 h-80 rounded-full bg-amber-500 blur-[120px] opacity-20 pointer-events-none z-0" />
+              
+              <motion.h1 
+                variants={itemVariants} 
+                className="text-5xl md:text-7xl font-extrabold tracking-tight text-white leading-none relative z-10"
+              >
+                {renderHeroTitle()}
+              </motion.h1>
+            </div>
 
             {/* Subtle Subheading */}
             <motion.p 
               variants={itemVariants} 
-              className="text-lg md:text-xl text-neutral-500 dark:text-neutral-400 leading-relaxed max-w-2xl font-medium"
+              className="text-lg md:text-xl text-neutral-500 dark:text-neutral-400 leading-relaxed max-w-2xl font-medium relative z-10"
             >
               {t.heroDesc || (isFr 
                 ? "Créez des designs uniques avec notre intelligence artificielle. Paiement sécurisé à la commande ou à la livraison au Maroc." 
                 : "Create unique designs with our artificial intelligence. Secure payment on order or delivery in Morocco.")}
             </motion.p>
             
-            {/* Sleek Brand Buttons */}
-            <motion.div variants={itemVariants} className="flex flex-col sm:flex-row gap-4 pt-4 w-full sm:w-auto justify-center">
+            {/* Single Conversion-Focused CTA */}
+            <motion.div variants={itemVariants} className="pt-4 relative z-10">
               <Link 
-                href="/categories" 
-                className="group flex items-center justify-center gap-2 bg-blue-600 text-white hover:bg-blue-500 shadow-md shadow-blue-500/20 active:scale-95 transition-all rounded-xl px-8 py-4 font-medium text-base"
+                href="/catalog" 
+                className="bg-blue-600 text-white rounded-full px-8 py-4 font-semibold shadow-lg shadow-blue-600/30 hover:shadow-blue-600/50 hover:-translate-y-1 transition-all duration-300 flex items-center gap-3 mx-auto mt-8 w-fit"
               >
-                {isFr ? 'Commencer' : 'Start Creating'}
-                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                {isFr ? 'Commencer la personnalisation' : 'Start Customizing'}
+                <ArrowRight className="w-5 h-5" />
               </Link>
-              <Link 
-                href="/help" 
-                className="flex items-center justify-center gap-2 border border-neutral-300 dark:border-neutral-800 text-neutral-900 dark:text-white hover:border-blue-500/50 hover:text-blue-500 rounded-xl px-8 py-4 font-medium text-base transition-colors group"
-              >
-                <div className="w-6 h-6 rounded-full bg-neutral-100 dark:bg-neutral-800 flex items-center justify-center group-hover:scale-105 transition-transform">
-                  <Play className="w-2.5 h-2.5 fill-current text-neutral-900 dark:text-white translate-x-0.5" />
-                </div>
-                {isFr ? 'Guide Studio' : 'Studio Guide'}
-              </Link>
-            </motion.div>
-
-            {/* Professional Tags */}
-            <motion.div variants={itemVariants} className="flex flex-wrap justify-center items-center gap-8 text-neutral-400 dark:text-neutral-500 pt-8">
-               {['DALL·E 3 Core', 'Production Grade', 'Global Fulfillment', 'WebP Optimized'].map((tag) => (
-                 <div key={tag} className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider">
-                   <div className="w-1.5 h-1.5 rounded-full bg-blue-500" />
-                   {tag}
-                 </div>
-               ))}
             </motion.div>
           </motion.section>
 
