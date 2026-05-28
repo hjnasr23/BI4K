@@ -1,10 +1,12 @@
 'use client';
+
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useApp } from "@/lib/store";
+import { translations } from "@/lib/translations";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
-import { Sparkles, ArrowRight, Loader2 } from "lucide-react";
+import { Sparkles, ArrowRight } from "lucide-react";
 import { motion } from "motion/react";
 import { supabase } from "@/lib/supabase";
 
@@ -15,79 +17,66 @@ interface Category {
   image_url: string | null;
 }
 
-// Gradient accents cycled across cards for visual variety
-const GRADIENT_ACCENTS = [
-  'from-brand-blue/40',
-  'from-rose-500/40',
-  'from-amber-500/40',
-  'from-emerald-500/40',
-  'from-brand-blue/40',
-  'from-brand-yellow/40',
-  'from-brand-yellow/40',
-  'from-teal-500/40',
-];
-
 // ── Skeleton Card ────────────────────────────────────────────
 const SkeletonCard = ({ index }: { index: number }) => (
   <motion.div
     initial={{ opacity: 0, scale: 0.95 }}
     animate={{ opacity: 1, scale: 1 }}
     transition={{ delay: index * 0.06 }}
-    className="relative h-[400px] rounded-[3rem] bg-[#0d0d12] border border-white/5 overflow-hidden"
+    className="relative h-[400px] rounded-3xl bg-neutral-50 dark:bg-neutral-900/50 border border-neutral-200 dark:border-white/5 overflow-hidden"
   >
     {/* Shimmer */}
     <div className="absolute inset-0 overflow-hidden">
-      <div className="absolute inset-0 -translate-x-full animate-[shimmer_2s_infinite] bg-gradient-to-r from-transparent via-white/[0.03] to-transparent" />
+      <div className="absolute inset-0 -translate-x-full animate-[shimmer_2s_infinite] bg-gradient-to-r from-transparent via-neutral-200/10 dark:via-white/[0.03] to-transparent" />
     </div>
-    <div className="relative z-10 p-10 flex flex-col justify-between h-full">
+    <div className="relative z-10 p-8 flex flex-col justify-end h-full">
       <div>
-        <div className="w-3/4 h-8 bg-white/5 rounded-2xl mb-4" />
-        <div className="w-1/2 h-4 bg-white/5 rounded-xl" />
+        <div className="w-3/4 h-8 bg-neutral-200/50 dark:bg-white/5 rounded-xl mb-4" />
+        <div className="w-1/2 h-4 bg-neutral-200/50 dark:bg-white/5 rounded-lg" />
       </div>
-      <div className="w-1/3 h-4 bg-white/5 rounded-xl" />
     </div>
   </motion.div>
 );
 
 // ── Category Card ────────────────────────────────────────────
 const CategoryCard = ({ category, index, lang }: { category: Category; index: number; lang: string }) => {
-  const gradient = GRADIENT_ACCENTS[index % GRADIENT_ACCENTS.length];
+  const t = translations[lang];
 
   return (
     <motion.div
-      initial={{ opacity: 0, scale: 0.95 }}
-      whileInView={{ opacity: 1, scale: 1 }}
-      transition={{ delay: index * 0.05 }}
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      transition={{ delay: index * 0.05, duration: 0.5 }}
       viewport={{ once: true }}
     >
       <Link
         href={`/categories/${category.slug}`}
-        className="group relative h-[400px] rounded-[3rem] bg-[#0d0d12] border border-white/5 flex flex-col justify-between overflow-hidden hover:border-brand-blue/30 transition-all duration-700 shadow-2xl"
+        className="relative block h-[400px] rounded-3xl overflow-hidden group cursor-pointer shadow-md dark:shadow-none border border-neutral-200 dark:border-white/10 transition-all duration-300 hover:-translate-y-1"
       >
         {/* Background Image */}
-        {category.image_url && (
+        {category.image_url ? (
           <img
             src={category.image_url}
             alt={category.name}
-            className="absolute inset-0 w-full h-full object-cover opacity-40 group-hover:opacity-60 transition-opacity duration-700 scale-100 group-hover:scale-105"
+            className="absolute inset-0 w-full h-full object-cover opacity-100 transition-transform duration-700 ease-out group-hover:scale-110 z-0"
           />
+        ) : (
+          <div className="absolute inset-0 bg-neutral-100 dark:bg-neutral-900 flex items-center justify-center z-0">
+            <span className="text-neutral-400 dark:text-neutral-600 uppercase tracking-widest font-semibold text-xs">No Image</span>
+          </div>
         )}
 
-        {/* Gradient Orb */}
-        <div className={`absolute -right-20 -top-20 w-80 h-80 bg-gradient-to-br ${gradient} to-transparent rounded-full blur-[100px] opacity-20 group-hover:opacity-40 transition-opacity duration-1000`} />
+        {/* Gradient Overlay for contrast */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent z-10 transition-opacity duration-300" />
 
-        {/* Dark Overlay for Readability */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent pointer-events-none" />
-
-        <div className="relative z-10 p-10">
-          <h3 className="text-4xl font-black text-white mb-4 leading-none uppercase italic tracking-tighter">
+        {/* Text Details strictly at bottom */}
+        <div className="absolute bottom-0 left-0 p-8 z-20 w-full text-left">
+          <h3 className="text-3xl font-bold text-white mb-2 tracking-wide uppercase">
             {category.name}
           </h3>
-        </div>
-
-        <div className="relative z-10 p-10 flex items-center justify-between">
-          <div className="flex items-center gap-3 text-brand-yellow font-black uppercase tracking-[0.3em] text-[10px] opacity-0 group-hover:opacity-100 translate-x-[-20px] group-hover:translate-x-0 transition-all duration-500">
-            {lang === 'fr' ? 'Explorer' : 'Explore'} <ArrowRight className="w-4 h-4" />
+          
+          <div className="text-neutral-300 opacity-0 transform translate-y-4 transition-all duration-300 group-hover:opacity-100 group-hover:translate-y-0 text-xs font-semibold uppercase tracking-wider flex items-center gap-2">
+            {t.catalogDiscoverModels} <ArrowRight className="w-4 h-4 text-blue-400" />
           </div>
         </div>
       </Link>
@@ -98,6 +87,7 @@ const CategoryCard = ({ category, index, lang }: { category: Category; index: nu
 // ── Main Page ────────────────────────────────────────────────
 export default function CategoriesPage() {
   const { lang } = useApp();
+  const t = translations[lang];
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -123,99 +113,117 @@ export default function CategoriesPage() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-background text-foreground transition-colors duration-500">
+    <div className="min-h-screen bg-white dark:bg-[#0a0a0a] text-neutral-900 dark:text-white transition-colors duration-500">
       <Navbar />
+      
+      <style>{`
+        @keyframes gradient {
+          0% { background-position: 0% 50%; }
+          50% { background-position: 100% 50%; }
+          100% { background-position: 0% 50%; }
+        }
+        .animate-gradient {
+          animation: gradient 6s ease infinite;
+        }
+      `}</style>
 
-      <main className="relative pt-48 pb-20">
-        {/* Spatial Background Blobs */}
-        <div className="absolute top-0 right-[-10%] w-[60%] h-[60%] bg-brand-blue/5 rounded-full blur-[160px] animate-blob pointer-events-none opacity-50" />
-        <div className="absolute bottom-0 left-[-10%] w-[60%] h-[60%] bg-brand-yellow/5 rounded-full blur-[160px] animate-blob animation-delay-2000 pointer-events-none opacity-50" />
+      <main className="relative pt-36 pb-24 max-w-7xl mx-auto px-6 lg:px-8">
+        
+        {/* Centered Header Section & Background Glow */}
+        <div className="text-center max-w-3xl mx-auto mb-16 relative py-8 flex flex-col items-center justify-center">
+          {/* Subtle Background Glows */}
+          <div className="absolute top-1/2 left-1/4 -translate-y-1/2 w-72 h-72 rounded-full bg-blue-500 blur-[120px] opacity-20 pointer-events-none z-0" />
+          <div className="absolute top-1/2 right-1/4 -translate-y-1/2 w-72 h-72 rounded-full bg-amber-500 blur-[120px] opacity-20 pointer-events-none z-0" />
 
-        <div className="container mx-auto px-6 relative z-10">
-          {/* Page Header */}
-          <motion.div
-            initial={{ opacity: 0, y: 40 }}
+          {/* Dynamic dynamic total badge */}
+          {!loading && categories.length > 0 && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="text-[10px] tracking-widest text-neutral-500 dark:text-neutral-400 font-medium uppercase border border-neutral-300 dark:border-neutral-800 rounded-full px-4 py-1.5 mx-auto w-fit mb-6 relative z-10 bg-neutral-50/50 dark:bg-[#111111]/50 backdrop-blur-sm"
+            >
+              {categories.length} {t.catalogCategoriesCount}
+            </motion.div>
+          )}
+
+          {/* Center-aligned Gradient Title */}
+          <motion.h1
+            initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            className="mb-16"
+            transition={{ duration: 0.6 }}
+            className="text-5xl md:text-6xl font-extrabold tracking-tight text-neutral-900 dark:text-white mb-4 relative z-10"
           >
-            <div className="flex items-center justify-between mb-12">
-              <h1 className="text-5xl md:text-6xl font-black tracking-tighter uppercase italic flex items-center gap-5">
-                <div className="w-1.5 h-12 bg-brand-blue rounded-full shadow-[0_0_20px_rgba(74,144,226,0.5)]" />
-                {lang === 'fr' ? 'Catalogue' : 'Catalogue'}
-              </h1>
-              {!loading && categories.length > 0 && (
-                <div className="px-5 py-2 rounded-full bg-brand-blue/5 border border-brand-blue/20 text-brand-yellow text-[9px] font-black uppercase tracking-[0.3em]">
-                  {categories.length} {lang === 'fr' ? 'Catégories' : 'Categories'}
-                </div>
-              )}
-            </div>
-          </motion.div>
+            <span className="bg-gradient-to-r from-blue-500 via-amber-500 to-blue-500 bg-[length:200%_auto] bg-clip-text text-transparent font-extrabold animate-gradient">
+              {t.catalog}
+            </span>
+          </motion.h1>
 
-          {/* Loading Skeleton */}
-          {loading && (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {Array.from({ length: 6 }).map((_, i) => (
-                <SkeletonCard key={i} index={i} />
-              ))}
-            </div>
-          )}
-
-          {/* Error State */}
-          {!loading && error && (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="text-center py-32 glass rounded-[3rem]"
-            >
-              <div className="w-20 h-20 rounded-3xl bg-red-500/10 border border-red-500/20 flex items-center justify-center mx-auto mb-8">
-                <Sparkles className="w-10 h-10 text-red-400" />
-              </div>
-              <p className="text-xl font-black text-foreground/40 uppercase tracking-tighter mb-4">
-                {lang === 'fr' ? 'Erreur de chargement' : 'Failed to Load'}
-              </p>
-              <p className="text-sm text-foreground/30 mb-8">{error}</p>
-              <button
-                onClick={() => window.location.reload()}
-                className="inline-flex items-center gap-2 px-8 py-4 rounded-2xl bg-brand-blue hover:bg-brand-blue/90 text-white font-black text-xs uppercase tracking-widest hover:scale-105 active:scale-95 transition-all shadow-xl shadow-brand-blue/20"
-              >
-                {lang === 'fr' ? 'Réessayer' : 'Retry'}
-              </button>
-            </motion.div>
-          )}
-
-          {/* Empty State */}
-          {!loading && !error && categories.length === 0 && (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="text-center py-32 glass rounded-[3rem]"
-            >
-              <div className="w-20 h-20 rounded-3xl bg-white/5 border border-white/10 flex items-center justify-center mx-auto mb-8">
-                <Sparkles className="w-10 h-10 text-foreground/20" />
-              </div>
-              <p className="text-2xl font-black text-foreground/40 uppercase tracking-tighter">
-                {lang === 'fr' ? 'Aucune catégorie disponible' : 'No categories available'}
-              </p>
-            </motion.div>
-          )}
-
-          {/* Categories Grid */}
-          {!loading && !error && categories.length > 0 && (
-            <motion.div
-              initial={{ opacity: 0, y: 40 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8 }}
-              viewport={{ once: true }}
-            >
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {categories.map((cat, idx) => (
-                  <CategoryCard key={cat.id} category={cat} index={idx} lang={lang} />
-                ))}
-              </div>
-            </motion.div>
-          )}
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.1 }}
+            className="text-neutral-500 dark:text-neutral-400 text-lg font-medium relative z-10"
+          >
+            {t.catalogSubtitle}
+          </motion.p>
         </div>
+
+        {/* Loading Skeleton */}
+        {loading && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mt-12">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <SkeletonCard key={i} index={i} />
+            ))}
+          </div>
+        )}
+
+        {/* Error State */}
+        {!loading && error && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-center py-20 bg-neutral-50 dark:bg-[#111111] border border-neutral-200 dark:border-white/10 rounded-3xl max-w-2xl mx-auto shadow-sm"
+          >
+            <div className="w-16 h-16 rounded-full bg-red-500/10 border border-red-500/20 flex items-center justify-center mx-auto mb-6">
+              <Sparkles className="w-8 h-8 text-red-500" />
+            </div>
+            <p className="text-xl font-bold text-neutral-900 dark:text-white mb-2 uppercase tracking-wide">
+              {t.catalogFailedToLoad}
+            </p>
+            <p className="text-sm text-neutral-500 dark:text-neutral-400 mb-6">{error}</p>
+            <button
+              onClick={() => window.location.reload()}
+              className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold text-sm transition-all cursor-pointer"
+            >
+              {t.catalogRetry}
+            </button>
+          </motion.div>
+        )}
+
+        {/* Empty State */}
+        {!loading && !error && categories.length === 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-center py-20 bg-neutral-50 dark:bg-[#111111] border border-neutral-200 dark:border-white/10 rounded-3xl max-w-2xl mx-auto shadow-sm"
+          >
+            <div className="w-16 h-16 rounded-full bg-neutral-100 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 flex items-center justify-center mx-auto mb-6">
+              <Sparkles className="w-8 h-8 text-neutral-400" />
+            </div>
+            <p className="text-2xl font-bold text-neutral-900 dark:text-white uppercase tracking-wider">
+              {t.catalogNoCategories}
+            </p>
+          </motion.div>
+        )}
+
+        {/* Premium Responsive Categories Grid */}
+        {!loading && !error && categories.length > 0 && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mt-12 relative z-10">
+            {categories.map((cat, idx) => (
+              <CategoryCard key={cat.id} category={cat} index={idx} lang={lang} />
+            ))}
+          </div>
+        )}
       </main>
 
       <Footer />
