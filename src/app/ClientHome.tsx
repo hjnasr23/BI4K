@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useApp } from "@/lib/store";
 import { translations } from "@/lib/translations";
-import { Shield, Sparkles, ArrowRight, Play, Star, Cpu, Globe } from "lucide-react";
+import { ShieldCheck, Sparkles, ArrowRight, Play, ShoppingBag, Truck } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { motion } from "motion/react";
@@ -117,187 +117,81 @@ export default function ClientHome({ categories, products }: { categories: Categ
           </motion.section>
 
           {/* Clean Thin Divider */}
-          <div className="border-b border-neutral-100 dark:border-neutral-900 mb-24" />
+          <div className="border-b border-neutral-100 dark:border-neutral-900 mb-16" />
 
-          {/* Catalog Teaser Section (Dynamic Categories) */}
-          <section className="mb-24">
-            <div className="flex flex-col items-start mb-12 space-y-2">
-              <span className="text-xs font-bold uppercase tracking-widest text-neutral-400 dark:text-neutral-500">BROWSE CATEGORIES</span>
-              <h2 className="text-3xl font-extrabold tracking-tight text-neutral-900 dark:text-white uppercase">
-                {isFr ? "Parcourir les catégories" : "Browse Categories"}
-              </h2>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {categories.slice(0, 3).map((cat, idx) => (
-                <motion.div
-                  key={cat.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  transition={{ delay: idx * 0.05 }}
-                  viewport={{ once: true }}
-                  className="col-span-1"
-                >
-                  <Link 
-                    href={`/categories/${cat.id}`} 
-                    className="group relative block overflow-hidden rounded-3xl bg-neutral-50 dark:bg-[#111111] border border-neutral-200 dark:border-white/5 p-6 transition-all duration-300 hover:-translate-y-1 hover:border-amber-500/40 hover:shadow-[0_0_20px_rgba(245,158,11,0.15)] h-[380px]"
-                  >
-                    <div className="h-[240px] rounded-2xl overflow-hidden relative bg-neutral-100 dark:bg-neutral-900 border border-neutral-200/40 dark:border-white/5">
-                      {cat.image_url ? (
-                        <img src={cat.image_url} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" alt={cat.name} />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center">
-                          <span className="text-neutral-400 dark:text-neutral-600 uppercase tracking-widest font-semibold text-xs">No Image</span>
-                        </div>
-                      )}
-                    </div>
-                    <div className="mt-6 flex justify-between items-center">
-                      <div>
-                        <h3 className="text-xl font-bold text-neutral-900 dark:text-white tracking-tight">{cat.name}</h3>
-                        <p className="text-neutral-500 dark:text-neutral-400 text-xs mt-1 uppercase tracking-wider font-semibold">
-                          {isFr ? 'Découvrir la collection' : 'Discover collection'}
-                        </p>
-                      </div>
-                      <div className="w-10 h-10 rounded-full bg-neutral-100 dark:bg-neutral-900 text-amber-500 flex items-center justify-center group-hover:bg-amber-500 group-hover:text-white transition-colors duration-200">
-                        <ArrowRight className="w-4 h-4" />
-                      </div>
-                    </div>
-                  </Link>
-                </motion.div>
-              ))}
-            </div>
-          </section>
-
-          {/* Clean Thin Divider */}
-          <div className="border-b border-neutral-100 dark:border-neutral-900 mb-24" />
-
-          {/* Featured Products Section */}
-          <section className="mb-24">
-            <div className="flex flex-col items-start mb-12 space-y-2">
-              <span className="text-xs font-bold uppercase tracking-widest text-neutral-400 dark:text-neutral-500">FEATURED PRODUCTS</span>
-              <h2 className="text-3xl font-extrabold tracking-tight text-neutral-900 dark:text-white uppercase">
-                {isFr ? "Produits Vedettes" : "Featured Products"}
-              </h2>
-            </div>
-            
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
-              {products.slice(0, 4).map((prod) => (
-                <Link 
-                  key={prod.id} 
-                  href={`/products/${prod.id}`} 
-                  className="group block bg-neutral-50 dark:bg-[#111111] border border-neutral-200 dark:border-white/5 rounded-3xl p-4 transition-all duration-300 hover:-translate-y-1 hover:border-amber-500/40 hover:shadow-[0_0_20px_rgba(245,158,11,0.15)]"
-                >
-                  <div className="aspect-square bg-neutral-100 dark:bg-neutral-900 border border-neutral-200/40 dark:border-white/5 rounded-2xl mb-4 overflow-hidden relative">
-                    {prod.base_image_url ? (
-                      <img src={prod.base_image_url} alt={prod.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center">
-                        <span className="text-neutral-400 dark:text-neutral-600 uppercase tracking-widest font-semibold text-xs">No Image</span>
-                      </div>
-                    )}
-                  </div>
-                  <h3 className="font-bold text-neutral-900 dark:text-white text-base mb-1 truncate">{prod.name}</h3>
-                  <p className="text-amber-500 font-bold text-sm">{prod.base_price} MAD</p>
-                </Link>
-              ))}
-            </div>
-          </section>
-
-          {/* Clean Thin Divider */}
-          <div className="border-b border-neutral-100 dark:border-neutral-900 mb-24" />
-
-          {/* Premium Bento Grid - Features */}
-          <section className="max-w-7xl mx-auto mb-24">
-             <div className="flex flex-col items-start mb-12 space-y-2">
-                <span className="text-xs font-bold uppercase tracking-widest text-neutral-400 dark:text-neutral-500">STUDIO SYSTEMS</span>
-                <h2 className="text-3xl font-extrabold tracking-tight text-neutral-900 dark:text-white uppercase">
-                  {isFr ? "Systèmes du Studio" : "Studio Systems"}
-                </h2>
-             </div>
+          {/* Redesigned Bento Grid Content Section */}
+          <section className="grid grid-cols-1 md:grid-cols-3 gap-6 auto-rows-[250px] my-16 max-w-7xl mx-auto px-4">
              
-             <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
-                {/* Main Feature - Bento Large */}
-                <motion.div 
-                   initial={{ opacity: 0, scale: 0.98 }}
-                   whileInView={{ opacity: 1, scale: 1 }}
-                   className="md:col-span-8 p-8 md:p-10 rounded-3xl bg-neutral-50 dark:bg-[#111111] border border-neutral-200 dark:border-white/5 transition-all duration-300 hover:-translate-y-1 hover:border-blue-500/40 hover:shadow-[0_0_20px_rgba(59,130,246,0.15)] flex flex-col justify-between space-y-12"
-                >
-                   <div>
-                      <div className="w-14 h-14 rounded-2xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center mb-8">
-                        <Cpu className="w-6 h-6 text-blue-500" />
-                      </div>
-                      <h3 className="text-3xl md:text-4xl font-extrabold text-neutral-900 dark:text-white tracking-tight mb-4 uppercase">
-                        Neural Design Synthesis
-                      </h3>
-                      <p className="text-neutral-500 dark:text-neutral-400 text-base leading-relaxed max-w-lg font-medium">
-                        Our advanced AI bridge transforms linguistic prompts into production-grade vector aesthetics in milliseconds.
-                      </p>
-                   </div>
-                      
-                   <div className="grid grid-cols-3 gap-6 pt-8 border-t border-neutral-200 dark:border-neutral-800">
-                      {[
-                        { label: 'Latency', val: '240ms', color: 'text-blue-500' },
-                        { label: 'Precision', val: '600 DPI', color: 'text-amber-500' },
-                        { label: 'Uptime', val: '99.9%', color: 'text-blue-500' },
-                      ].map(stat => (
-                        <div key={stat.label}>
-                          <p className="text-[10px] font-bold uppercase tracking-widest text-neutral-400 dark:text-neutral-500 mb-1">{stat.label}</p>
-                          <p className={`text-xl font-bold ${stat.color}`}>{stat.val}</p>
-                        </div>
-                      ))}
-                   </div>
-                </motion.div>
-
-                {/* Secondary & Third Column container */}
-                <div className="md:col-span-4 flex flex-col gap-6">
-                  {/* Secondary Feature - Bento Square */}
-                  <motion.div 
-                     initial={{ opacity: 0, y: 10 }}
-                     whileInView={{ opacity: 1, y: 0 }}
-                     className="p-8 rounded-3xl bg-neutral-50 dark:bg-[#111111] border border-neutral-200 dark:border-white/5 transition-all duration-300 hover:-translate-y-1 hover:border-blue-500/40 hover:shadow-[0_0_20px_rgba(59,130,246,0.15)]"
-                  >
-                     <div className="w-12 h-12 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center mb-6">
-                        <Shield className="w-5 h-5 text-blue-500" />
-                     </div>
-                     <h3 className="text-2xl font-bold text-neutral-900 dark:text-white tracking-tight mb-3 uppercase">Vault Encryption</h3>
-                     <p className="text-neutral-500 dark:text-neutral-400 text-sm leading-relaxed font-medium">Every design is secured with high-level encryption in your private studio vault.</p>
-                  </motion.div>
-
-                  {/* Third Feature - Bento Small */}
-                  <motion.div 
-                     initial={{ opacity: 0, y: 10 }}
-                     whileInView={{ opacity: 1, y: 0 }}
-                     className="p-8 rounded-3xl bg-neutral-50 dark:bg-[#111111] border border-neutral-200 dark:border-white/5 transition-all duration-300 hover:-translate-y-1 hover:border-amber-500/40 hover:shadow-[0_0_20px_rgba(245,158,11,0.15)]"
-                  >
-                     <div className="w-12 h-12 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center mb-6">
-                        <Globe className="w-5 h-5 text-amber-500" />
-                     </div>
-                     <h3 className="text-2xl font-bold text-neutral-900 dark:text-white tracking-tight mb-3 uppercase">Global Reach</h3>
-                     <p className="text-neutral-500 dark:text-neutral-400 text-sm leading-relaxed font-medium">Fulfilled by local artisan hubs to reduce carbon and delivery lag.</p>
-                  </motion.div>
-                </div>
-
-                {/* Fourth Feature - Bento Long */}
-                <motion.div 
-                   initial={{ opacity: 0, y: 10 }}
-                   whileInView={{ opacity: 1, y: 0 }}
-                   className="md:col-span-12 p-8 md:p-10 rounded-3xl bg-neutral-50 dark:bg-[#111111] border border-neutral-200 dark:border-white/5 transition-all duration-300 hover:-translate-y-1 hover:border-blue-500/40 hover:shadow-[0_0_20px_rgba(59,130,246,0.15)] flex flex-col md:flex-row items-center justify-between gap-8 overflow-hidden"
-                >
-                   <div className="flex-1">
-                      <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-[10px] font-bold uppercase tracking-wider text-amber-600 dark:text-amber-400 mb-4">
-                         <Star className="w-3 h-3 text-amber-500 animate-pulse" />
-                         Premium Experience
-                      </div>
-                      <h3 className="text-3xl md:text-4xl font-extrabold text-neutral-900 dark:text-white tracking-tight mb-3 uppercase">Limitless Customization</h3>
-                      <p className="text-neutral-500 dark:text-neutral-400 text-base leading-relaxed max-w-xl font-medium">From fabric textures to complex neural patterns, the Studio gives you complete control over your creative expression.</p>
-                   </div>
+             {/* Card 1: Browse Categories (md:col-span-2 md:row-span-2) */}
+             <div className="md:col-span-2 md:row-span-2 rounded-3xl overflow-hidden relative group border border-neutral-200 dark:border-white/5 transition-all duration-300 hover:-translate-y-1 hover:border-amber-500/40 hover:shadow-[0_0_20px_rgba(245,158,11,0.15)]">
+                <img 
+                  src="/images/categories-bg.jpg" 
+                  alt="Parcourir les Catégories" 
+                  className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" 
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-black/10 z-10" />
+                <div className="relative z-20 flex flex-col justify-end h-full p-8 md:p-10">
+                   <h3 className="text-white text-3xl font-bold tracking-tight mb-2">Parcourir les Catégories</h3>
+                   <p className="text-neutral-300 text-sm max-w-md">Explorez nos supports de qualité supérieure prêts pour vos créations</p>
                    <Link 
-                     href="/categories" 
-                     className="bg-blue-600 text-white hover:bg-blue-500 shadow-md shadow-blue-500/20 active:scale-95 transition-all rounded-xl px-8 py-4 font-semibold text-sm tracking-wide uppercase shrink-0"
+                     href="/catalog" 
+                     className="bg-blue-600 text-white hover:bg-blue-500 rounded-xl px-6 py-3 mt-4 inline-flex items-center gap-2 font-medium transition-all hover:scale-105 w-fit"
                    >
-                      {isFr ? 'Entrer dans le Studio' : 'Enter Studio'}
+                     {isFr ? 'Découvrir' : 'Discover'} <ArrowRight className="w-4 h-4" />
                    </Link>
-                </motion.div>
+                </div>
+             </div>
+
+             {/* Card 2: Featured Products (md:col-span-1 md:row-span-2) */}
+             <div className="md:col-span-1 md:row-span-2 rounded-3xl overflow-hidden relative group border border-neutral-200 dark:border-white/5 transition-all duration-300 hover:-translate-y-1 hover:border-amber-500/40 hover:shadow-[0_0_20px_rgba(245,158,11,0.15)]">
+                <img 
+                  src="/images/featured-product.jpg" 
+                  alt="Produits Vedettes" 
+                  className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" 
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent z-10" />
+                <div className="absolute top-6 right-6 z-20">
+                   <ShoppingBag className="w-6 h-6 text-amber-500" />
+                </div>
+                <div className="relative z-20 flex flex-col justify-end h-full p-8">
+                   <h3 className="text-white text-xl font-bold mb-2">Produits Vedettes</h3>
+                   <p className="text-neutral-300 text-sm">Découvrez les créations tendances.</p>
+                </div>
+             </div>
+
+             {/* Card 3: Neural Design Synthesis (md:col-span-2 md:row-span-1) */}
+             <div className="md:col-span-2 md:row-span-1 rounded-3xl overflow-hidden relative group border border-white/10 transition-all duration-300 hover:-translate-y-1 hover:border-blue-500/50 hover:shadow-[0_0_20px_rgba(59,130,246,0.2)]">
+                <img 
+                  src="/images/ai-synthesis.jpg" 
+                  alt="Intelligence Artificielle" 
+                  className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" 
+                />
+                <div className="absolute inset-0 bg-black/70 z-10" />
+                <div className="relative z-20 flex flex-col justify-center h-full p-8">
+                   <div className="flex items-center gap-2 mb-2">
+                      <Sparkles className="w-6 h-6 text-blue-400" />
+                      <span className="bg-gradient-to-r from-blue-400 to-amber-400 bg-clip-text text-transparent font-extrabold text-2xl uppercase tracking-wider">
+                         Intelligence Artificielle
+                      </span>
+                   </div>
+                   <p className="text-neutral-200 text-sm max-w-xl">
+                      Générez des designs uniques en un clic grâce à notre IA.
+                   </p>
+                </div>
+             </div>
+
+             {/* Card 4: Vault Encryption (md:col-span-1 md:row-span-1) */}
+             <div className="md:col-span-1 md:row-span-1 rounded-3xl overflow-hidden bg-neutral-50 dark:bg-[#111111] border border-neutral-200 dark:border-white/5 p-6 flex flex-col justify-center transition-all duration-300 hover:-translate-y-1 hover:border-amber-500/40 hover:shadow-[0_0_20px_rgba(245,158,11,0.15)]">
+                <ShieldCheck className="w-8 h-8 text-amber-500 mb-3" />
+                <h3 className="text-neutral-900 dark:text-white font-bold text-lg mb-1">Sécurité</h3>
+                <p className="text-neutral-500 dark:text-neutral-400 text-sm">Paiement 100% sécurisé.</p>
+             </div>
+
+             {/* Card 5: Global Reach (md:col-span-1 md:row-span-1) */}
+             <div className="md:col-span-1 md:row-span-1 rounded-3xl overflow-hidden bg-neutral-50 dark:bg-[#111111] border border-neutral-200 dark:border-white/5 p-6 flex flex-col justify-center transition-all duration-300 hover:-translate-y-1 hover:border-blue-500/40 hover:shadow-[0_0_20px_rgba(59,130,246,0.15)]">
+                <Truck className="w-8 h-8 text-blue-500 mb-3" />
+                <h3 className="text-neutral-900 dark:text-white font-bold text-lg mb-1">Livraison</h3>
+                <p className="text-neutral-500 dark:text-neutral-400 text-sm">Partout au Maroc.</p>
              </div>
           </section>
 
