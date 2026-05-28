@@ -88,7 +88,7 @@ export default function ClientHome({ categories, products }: { categories: Categ
               
               <motion.h1 
                 variants={itemVariants} 
-                className="text-5xl md:text-7xl font-extrabold tracking-tight text-white leading-none relative z-10"
+                className="text-5xl md:text-7xl font-extrabold tracking-tight text-neutral-900 dark:text-white leading-none relative z-10"
               >
                 {renderHeroTitle()}
               </motion.h1>
@@ -107,7 +107,7 @@ export default function ClientHome({ categories, products }: { categories: Categ
             {/* Single Conversion-Focused CTA */}
             <motion.div variants={itemVariants} className="pt-4 relative z-10">
               <Link 
-                href="/catalog" 
+                href="/categories" 
                 className="bg-blue-600 text-white rounded-full px-8 py-4 font-semibold shadow-lg shadow-blue-600/30 hover:shadow-blue-600/50 hover:-translate-y-1 transition-all duration-300 flex items-center gap-3 mx-auto mt-8 w-fit"
               >
                 {isFr ? 'Commencer la personnalisation' : 'Start Customizing'}
@@ -127,14 +127,14 @@ export default function ClientHome({ categories, products }: { categories: Categ
                 <img 
                   src="/images/categories-bg.jpg" 
                   alt="Parcourir les Catégories" 
-                  className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" 
+                  className="opacity-100 absolute inset-0 object-cover w-full h-full z-0 transition-transform duration-700 ease-out group-hover:scale-110" 
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-black/10 z-10" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent z-10" />
                 <div className="relative z-20 flex flex-col justify-end h-full p-8 md:p-10">
                    <h3 className="text-white text-3xl font-bold tracking-tight mb-2">Parcourir les Catégories</h3>
-                   <p className="text-neutral-300 text-sm max-w-md">Explorez nos supports de qualité supérieure prêts pour vos créations</p>
+                   <p className="text-neutral-200 text-sm max-w-md">Explorez nos supports de qualité supérieure prêts pour vos créations</p>
                    <Link 
-                     href="/catalog" 
+                     href="/categories" 
                      className="bg-blue-600 text-white hover:bg-blue-500 rounded-xl px-6 py-3 mt-4 inline-flex items-center gap-2 font-medium transition-all hover:scale-105 w-fit"
                    >
                      {isFr ? 'Découvrir' : 'Discover'} <ArrowRight className="w-4 h-4" />
@@ -147,15 +147,15 @@ export default function ClientHome({ categories, products }: { categories: Categ
                 <img 
                   src="/images/featured-product.jpg" 
                   alt="Produits Vedettes" 
-                  className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" 
+                  className="opacity-100 absolute inset-0 object-cover w-full h-full z-0 transition-transform duration-700 ease-out group-hover:scale-110" 
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent z-10" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent z-10" />
                 <div className="absolute top-6 right-6 z-20">
                    <ShoppingBag className="w-6 h-6 text-amber-500" />
                 </div>
                 <div className="relative z-20 flex flex-col justify-end h-full p-8">
                    <h3 className="text-white text-xl font-bold mb-2">Produits Vedettes</h3>
-                   <p className="text-neutral-300 text-sm">Découvrez les créations tendances.</p>
+                   <p className="text-neutral-200 text-sm">Découvrez les créations tendances.</p>
                 </div>
              </div>
 
@@ -164,9 +164,9 @@ export default function ClientHome({ categories, products }: { categories: Categ
                 <img 
                   src="/images/ai-synthesis.jpg" 
                   alt="Intelligence Artificielle" 
-                  className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" 
+                  className="opacity-100 absolute inset-0 object-cover w-full h-full z-0 transition-transform duration-700 ease-out group-hover:scale-110" 
                 />
-                <div className="absolute inset-0 bg-black/70 z-10" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent z-10" />
                 <div className="relative z-20 flex flex-col justify-center h-full p-8">
                    <div className="flex items-center gap-2 mb-2">
                       <Sparkles className="w-6 h-6 text-blue-400" />
@@ -181,17 +181,33 @@ export default function ClientHome({ categories, products }: { categories: Categ
              </div>
 
              {/* Card 4: Vault Encryption (md:col-span-1 md:row-span-1) */}
-             <div className="md:col-span-1 md:row-span-1 rounded-3xl overflow-hidden bg-neutral-50 dark:bg-[#111111] border border-neutral-200 dark:border-white/5 p-6 flex flex-col justify-center transition-all duration-300 hover:-translate-y-1 hover:border-amber-500/40 hover:shadow-[0_0_20px_rgba(245,158,11,0.15)]">
-                <ShieldCheck className="w-8 h-8 text-amber-500 mb-3" />
-                <h3 className="text-neutral-900 dark:text-white font-bold text-lg mb-1">Sécurité</h3>
-                <p className="text-neutral-500 dark:text-neutral-400 text-sm">Paiement 100% sécurisé.</p>
+             <div className="md:col-span-1 md:row-span-1 rounded-3xl overflow-hidden bg-neutral-50 dark:bg-[#111111] border border-neutral-200 dark:border-white/10 p-6 flex flex-col justify-center transition-all duration-300 hover:-translate-y-1 hover:border-amber-500/40 hover:shadow-[0_0_20px_rgba(245,158,11,0.15)] relative group">
+                <img 
+                  src="/images/security-bg.jpg" 
+                  alt="Sécurité Background" 
+                  className="opacity-100 absolute inset-0 object-cover w-full h-full z-0 transition-transform duration-700 ease-out group-hover:scale-110" 
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent z-10" />
+                <div className="relative z-20">
+                   <ShieldCheck className="w-8 h-8 text-amber-500 mb-3" />
+                   <h3 className="text-white font-bold text-lg mb-1">Sécurité</h3>
+                   <p className="text-neutral-200 text-sm">Paiement 100% sécurisé.</p>
+                </div>
              </div>
 
              {/* Card 5: Global Reach (md:col-span-1 md:row-span-1) */}
-             <div className="md:col-span-1 md:row-span-1 rounded-3xl overflow-hidden bg-neutral-50 dark:bg-[#111111] border border-neutral-200 dark:border-white/5 p-6 flex flex-col justify-center transition-all duration-300 hover:-translate-y-1 hover:border-blue-500/40 hover:shadow-[0_0_20px_rgba(59,130,246,0.15)]">
-                <Truck className="w-8 h-8 text-blue-500 mb-3" />
-                <h3 className="text-neutral-900 dark:text-white font-bold text-lg mb-1">Livraison</h3>
-                <p className="text-neutral-500 dark:text-neutral-400 text-sm">Partout au Maroc.</p>
+             <div className="md:col-span-1 md:row-span-1 rounded-3xl overflow-hidden bg-neutral-50 dark:bg-[#111111] border border-neutral-200 dark:border-white/10 p-6 flex flex-col justify-center transition-all duration-300 hover:-translate-y-1 hover:border-blue-500/40 hover:shadow-[0_0_20px_rgba(59,130,246,0.15)] relative group">
+                <img 
+                  src="/images/delivery-bg.jpg" 
+                  alt="Livraison Background" 
+                  className="opacity-100 absolute inset-0 object-cover w-full h-full z-0 transition-transform duration-700 ease-out group-hover:scale-110" 
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent z-10" />
+                <div className="relative z-20">
+                   <Truck className="w-8 h-8 text-blue-500 mb-3" />
+                   <h3 className="text-white font-bold text-lg mb-1">Livraison</h3>
+                   <p className="text-neutral-200 text-sm">Partout au Maroc.</p>
+                </div>
              </div>
           </section>
 
