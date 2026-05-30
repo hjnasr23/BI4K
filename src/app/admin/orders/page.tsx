@@ -13,7 +13,8 @@ import {
   Printer,
   Crosshair,
   Image as ImageIcon,
-  Layers
+  Layers,
+  DownloadCloud
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 
@@ -65,6 +66,24 @@ export default function AdminOrdersPage() {
     fetchOrders();
   }, []);
 
+  const downloadImage = async (imageUrl: string, fileName: string) => {
+    try {
+      const response = await fetch(imageUrl, { mode: 'cors' });
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      console.warn("Forced download failed, falling back to open in new tab:", err);
+      window.open(imageUrl, '_blank');
+    }
+  };
+
   const fetchOrders = async () => {
     const { data, error } = await supabase
       .from('orders')
@@ -80,6 +99,23 @@ export default function AdminOrdersPage() {
   };
 
   const updateOrderStatus = async (orderId: string, newStatus: string) => {
+    // 1. Fetch current order to check the old status and order items
+    const { data: order, error: fetchErr } = await supabase
+      .from('orders')
+      .select('*')
+      .eq('id', orderId)
+      .maybeSingle();
+
+    if (fetchErr || !order) {
+      console.error('Error fetching order for stock update:', fetchErr);
+      showToast("Impossible de récupérer la commande pour la mise à jour des stocks.", "error");
+      return;
+    }
+
+    const oldStatus = (order.status || '').toUpperCase().trim();
+    const targetStatus = newStatus.toUpperCase().trim();
+
+    // 2. Perform the status update
     const { error } = await supabase
       .from('orders')
       .update({ status: newStatus })
@@ -88,11 +124,72 @@ export default function AdminOrdersPage() {
     if (error) {
       console.error('Supabase Update Error:', error);
       showToast(`Erreur Supabase: ${error.message}`, "error");
-    } else {
-      setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status: newStatus } : o));
-      showToast("Statut de la commande mis à jour avec succès !", "success");
-      router.refresh();
+      return;
     }
+
+    // 3. Stock management rules
+    const isActive = (s: string) => s === 'PENDING' || s === 'LIVRÉE' || s === 'LIVREE' || s === 'EN ATTENTE' || s === 'DELIVERED';
+    const isCanceled = (s: string) => s === 'ANNULÉE' || s === 'ANNULEE' || s === 'ANNULÉ' || s === 'ANNULE' || s === 'CANCELED' || s === 'CANCELLED';
+
+    // Transition A: Active -> Canceled (RESTORE STOCK)
+    if (isActive(oldStatus) && isCanceled(targetStatus)) {
+      const items = typeof order.order_items === 'string' ? JSON.parse(order.order_items) : order.order_items;
+      if (Array.isArray(items)) {
+        for (const item of items) {
+          const productId = item.id;
+          const qty = item.quantity || 1;
+          if (productId) {
+            // Fetch current stock
+            const { data: prod } = await supabase
+              .from('products')
+              .select('stock')
+              .eq('id', productId)
+              .maybeSingle();
+            
+            if (prod) {
+              const newStock = (prod.stock || 0) + qty;
+              await supabase
+                .from('products')
+                .update({ stock: newStock })
+                .eq('id', productId);
+            }
+          }
+        }
+        showToast("Statut mis à jour. Stock restitué avec succès !", "success");
+      }
+    } 
+    // Transition B: Canceled -> Active (DEDUCT STOCK)
+    else if (isCanceled(oldStatus) && isActive(targetStatus)) {
+      const items = typeof order.order_items === 'string' ? JSON.parse(order.order_items) : order.order_items;
+      if (Array.isArray(items)) {
+        for (const item of items) {
+          const productId = item.id;
+          const qty = item.quantity || 1;
+          if (productId) {
+            // Fetch current stock
+            const { data: prod } = await supabase
+              .from('products')
+              .select('stock')
+              .eq('id', productId)
+              .maybeSingle();
+            
+            if (prod) {
+              const newStock = Math.max(0, (prod.stock || 0) - qty);
+              await supabase
+                .from('products')
+                .update({ stock: newStock })
+                .eq('id', productId);
+            }
+          }
+        }
+        showToast("Statut mis à jour. Stock déduit avec succès !", "success");
+      }
+    } else {
+      showToast("Statut de la commande mis à jour avec succès !", "success");
+    }
+
+    setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status: newStatus } : o));
+    router.refresh();
   };
 
   const getStatusColor = (status: string) => {
@@ -321,6 +418,15 @@ export default function AdminOrdersPage() {
                                                 <span className="text-[9px] text-slate-500 font-bold uppercase tracking-widest">Aucune image</span>
                                               )}
                                             </div>
+                                            {supportSrc && (
+                                              <button
+                                                type="button"
+                                                onClick={() => downloadImage(supportSrc, `support-${order.id}-${idx + 1}.png`)}
+                                                className="w-full mt-2 py-2 px-3 bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/20 text-blue-400 rounded-xl text-[10px] font-black uppercase tracking-widest transition-colors flex items-center justify-center gap-1.5"
+                                              >
+                                                <DownloadCloud className="w-3.5 h-3.5" /> Télécharger Support
+                                              </button>
+                                            )}
                                           </div>
 
                                           {/* Design Image */}
@@ -336,6 +442,15 @@ export default function AdminOrdersPage() {
                                                 <span className="text-[9px] text-slate-500 font-bold uppercase tracking-widest">Aucun design personnalisé</span>
                                               )}
                                             </div>
+                                            {hasDesign && designSrc && (
+                                              <button
+                                                type="button"
+                                                onClick={() => downloadImage(designSrc, `design-${order.id}-${idx + 1}.png`)}
+                                                className="w-full mt-2 py-2 px-3 bg-violet-500/10 hover:bg-violet-500/20 border border-violet-500/20 text-violet-400 rounded-xl text-[10px] font-black uppercase tracking-widest transition-colors flex items-center justify-center gap-1.5"
+                                              >
+                                                <DownloadCloud className="w-3.5 h-3.5" /> Télécharger Design
+                                              </button>
+                                            )}
                                           </div>
                                         </div>
 

@@ -7,7 +7,7 @@ import { useApp } from '@/lib/store';
 
 export default function ClientProductCustomizer({ product }: { product: any }) {
   const router = useRouter();
-  const { lang } = useApp();
+  const { lang, profile } = useApp();
   
   // State for selections
   const [selectedSize, setSelectedSize] = useState<string>('');
@@ -27,6 +27,10 @@ export default function ClientProductCustomizer({ product }: { product: any }) {
     product.sale_price !== null &&
     product.sale_ends_at !== null &&
     new Date(product.sale_ends_at) > now;
+
+  const hasValidDiscount = profile?.discount_rate > 0 && profile?.discount_expires_at && new Date(profile.discount_expires_at) > now;
+  const originalPrice = product.price;
+  const finalPrice = hasValidDiscount ? originalPrice * (1 - profile.discount_rate / 100) : originalPrice;
 
   const handleCustomize = (mode: 'upload' | 'ai') => {
     if (!selectedSize) {
@@ -80,7 +84,12 @@ export default function ClientProductCustomizer({ product }: { product: any }) {
             
             {/* Price display (MAD) with discount logic */}
             <div className="flex items-center gap-4 mt-4">
-              {isSaleActive ? (
+              {hasValidDiscount ? (
+                <>
+                  <span className="text-3xl font-black text-red-500">{(finalPrice % 1 === 0 ? finalPrice : finalPrice.toFixed(2))} MAD</span>
+                  <span className="text-lg font-bold text-gray-500 line-through">{product.price} MAD</span>
+                </>
+              ) : isSaleActive ? (
                 <>
                   <span className="text-3xl font-black text-green-400">{product.sale_price} MAD</span>
                   <span className="text-lg font-bold text-gray-500 line-through">{product.price} MAD</span>

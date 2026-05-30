@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -38,6 +38,16 @@ export default function LoginPage() {
   // Password visibility
   const [showPassword, setShowPassword] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
+  const [isSuspended, setIsSuspended] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('suspended') === 'true') {
+        setIsSuspended(true);
+      }
+    }
+  }, []);
 
   // Forms
   const { 
@@ -166,6 +176,12 @@ export default function LoginPage() {
                 ? "Sign in to access your secure design studio." 
                 : "Create your account and start customized designs."}
             </p>
+
+            {isSuspended && (
+              <div className="p-4 my-4 rounded-2xl bg-rose-500/10 border border-rose-500/20 text-rose-400 text-sm font-medium">
+                {lang === 'fr' ? "Votre compte a été suspendu par l'administrateur." : "Your account has been suspended by the admin."}
+              </div>
+            )}
 
             {authError && (
               <div className="p-4 my-4 rounded-2xl bg-rose-500/10 border border-rose-500/20 text-rose-400 text-sm font-medium">

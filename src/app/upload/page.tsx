@@ -12,7 +12,7 @@ import { useCartStore } from "@/lib/store/cartStore";
 import Link from "next/link";
 
 function UploadContent() {
-  const { lang } = useApp();
+  const { lang, profile } = useApp();
   const t = translations[lang];
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -132,7 +132,9 @@ function UploadContent() {
     productData.sale_ends_at !== null &&
     new Date(productData.sale_ends_at) > now;
 
-  const currentPrice = isSaleActive ? productData.sale_price : (productData?.price || 0);
+  const hasValidDiscount = profile?.discount_rate > 0 && profile?.discount_expires_at && new Date(profile.discount_expires_at) > now;
+  const originalPrice = isSaleActive ? productData.sale_price : (productData?.price || 0);
+  const currentPrice = hasValidDiscount ? originalPrice * (1 - profile.discount_rate / 100) : originalPrice;
 
   const handleAddToCart = () => {
     if (!designFile) {
@@ -382,9 +384,16 @@ function UploadContent() {
                   <p className="text-[10px] font-bold text-foreground/40 uppercase tracking-widest">Selected Size</p>
                   <p className="text-[10px] font-black uppercase tracking-tighter text-white">{querySize}</p>
                 </div>
-                <div className="flex justify-between items-center">
+                 <div className="flex justify-between items-center">
                   <p className="text-[10px] font-bold text-foreground/40 uppercase tracking-widest">Unit Price</p>
-                  <p className="text-lg font-black text-brand-yellow italic">{currentPrice} MAD</p>
+                  {hasValidDiscount ? (
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-bold text-neutral-500 line-through">{(originalPrice % 1 === 0 ? originalPrice : originalPrice.toFixed(2))} MAD</span>
+                      <span className="text-lg font-black text-red-500 italic">{(currentPrice % 1 === 0 ? currentPrice : currentPrice.toFixed(2))} MAD</span>
+                    </div>
+                  ) : (
+                    <p className="text-lg font-black text-brand-yellow italic">{currentPrice} MAD</p>
+                  )}
                 </div>
               </div>
             )}
@@ -429,11 +438,16 @@ function UploadContent() {
               </div>
             </div>
 
-            {/* Total */}
+             {/* Total */}
             <div className="pt-6 border-t border-white/5 mb-8">
               <div className="flex justify-between items-end">
                 <p className="text-[9px] font-black uppercase tracking-[0.4em] text-foreground/20">Final Amount</p>
-                <p className="text-3xl font-black tracking-tighter text-white">{currentPrice * quantity} MAD</p>
+                <div className="text-right">
+                  {hasValidDiscount && (
+                    <span className="block text-xs font-bold text-neutral-500 line-through mb-1">{(originalPrice * quantity) % 1 === 0 ? (originalPrice * quantity) : (originalPrice * quantity).toFixed(2)} MAD</span>
+                  )}
+                  <p className="text-3xl font-black tracking-tighter text-white">{((currentPrice * quantity) % 1 === 0 ? (currentPrice * quantity) : (currentPrice * quantity).toFixed(2))} MAD</p>
+                </div>
               </div>
             </div>
 

@@ -92,12 +92,21 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         .select('*')
         .eq('id', userId)
         .maybeSingle();
-      setProfile(data ?? null);
+      
+      if (data?.is_banned) {
+        await supabase.auth.signOut();
+        setProfile(null);
+        setUser(null);
+        showToast("Votre compte a été suspendu par l'administrateur.", 'error');
+        window.location.href = '/login?suspended=true';
+      } else {
+        setProfile(data ?? null);
+      }
     } catch (err) {
       console.error('Error fetching profile:', err);
       setProfile(null);
     }
-  }, [supabase]);
+  }, [supabase, showToast]);
 
   useEffect(() => {
     const storedLang = (localStorage.getItem('bi4k-lang') as Lang) || 'fr';

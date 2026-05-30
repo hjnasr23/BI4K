@@ -3,12 +3,13 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { LayoutDashboard, Tag, Package, LogOut, Zap, ShoppingCart, Menu, X } from 'lucide-react';
+import { LayoutDashboard, Tag, Package, LogOut, Zap, ShoppingCart, Menu, X, Users } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
  
 const navItems = [
   { href: '/admin',             label: 'Dashboard',   icon: LayoutDashboard },
   { href: '/admin/orders',      label: 'Commandes',   icon: ShoppingCart },
+  { href: '/admin/users',       label: 'Utilisateurs', icon: Users },
   { href: '/admin/categories',  label: 'Catégories',  icon: Tag },
   { href: '/admin/products',    label: 'Produits',    icon: Package },
 ];
@@ -144,9 +145,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </div>
           
           <div className="flex items-center gap-3">
-            <div className="px-3.5 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10px] font-black uppercase tracking-widest">
-              Live Connection
-            </div>
           </div>
         </header>
  

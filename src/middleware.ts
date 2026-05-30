@@ -59,6 +59,20 @@ async function handleUserProtected(request: NextRequest): Promise<NextResponse> 
     return NextResponse.redirect(loginUrl);
   }
 
+  // Fetch is_banned status to enforce suspension
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('is_banned')
+    .eq('id', user.id)
+    .maybeSingle();
+
+  if (profile?.is_banned) {
+    const loginUrl = new URL('/login?suspended=true', request.url);
+    const response = NextResponse.redirect(loginUrl);
+    response.cookies.delete(cookieKey);
+    return response;
+  }
+
   return NextResponse.next();
 }
 

@@ -51,7 +51,7 @@ const getColorHex = (colorName: string) => {
 };
 
 /* ─────────── ProductCard Component ─────────── */
-const ProductCard = ({ product, lang }: { product: Product; lang: string }) => {
+const ProductCard = ({ product, lang, profile }: { product: Product; lang: string; profile: any | null }) => {
   const [isHovered, setIsHovered] = useState(false);
 
   // Fallback: if images is empty, use the old image_url property for backward compatibility
@@ -71,6 +71,10 @@ const ProductCard = ({ product, lang }: { product: Product; lang: string }) => {
     product.sale_price !== null && 
     product.sale_ends_at !== null && 
     new Date(product.sale_ends_at) > now;
+
+  const hasValidDiscount = profile?.discount_rate > 0 && profile?.discount_expires_at && new Date(profile.discount_expires_at) > now;
+  const originalPrice = product.price;
+  const finalPrice = hasValidDiscount ? originalPrice * (1 - profile.discount_rate / 100) : originalPrice;
 
   const getCountdownText = () => {
     if (!product.sale_ends_at) return '';
@@ -129,7 +133,16 @@ const ProductCard = ({ product, lang }: { product: Product; lang: string }) => {
             
             {/* Pricing logic (MAD) */}
             <div className="text-right flex-shrink-0">
-              {isSaleActive ? (
+              {hasValidDiscount ? (
+                <div className="flex flex-col items-end">
+                  <span className="text-sm font-black text-red-500">
+                    {(finalPrice % 1 === 0 ? finalPrice : finalPrice.toFixed(2))} MAD
+                  </span>
+                  <span className="text-[10px] font-bold text-neutral-500 line-through mt-0.5">
+                    {product.price} MAD
+                  </span>
+                </div>
+              ) : isSaleActive ? (
                 <div className="flex flex-col items-end">
                   <span className="text-sm font-black text-green-400">{product.sale_price} MAD</span>
                   <span className="text-[10px] font-bold text-neutral-500 line-through mt-0.5">{product.price} MAD</span>
@@ -156,7 +169,7 @@ const ProductCard = ({ product, lang }: { product: Product; lang: string }) => {
 
 /* ─────────── Main CategoryDetailsPage Component ─────────── */
 export default function CategoryDetailsPage() {
-  const { lang } = useApp();
+  const { lang, profile } = useApp();
   const t = translations[lang];
   const pathname = usePathname();
   
@@ -413,7 +426,7 @@ export default function CategoryDetailsPage() {
             ) : filteredProducts.length > 0 ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-8 animate-reveal">
                 {filteredProducts.map((product) => (
-                  <ProductCard key={product.id} product={product} lang={lang} />
+                  <ProductCard key={product.id} product={product} lang={lang} profile={profile} />
                 ))}
               </div>
             ) : (

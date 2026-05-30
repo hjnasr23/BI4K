@@ -219,7 +219,7 @@ export default function AdminProductsPage() {
       : '';
     setImagesInput(extraImages || '');
     
-    setColorsInput(prod.colors ? prod.colors.join(', ') : '');
+    setColorsInput(prod.colors && prod.colors.length > 0 ? prod.colors[0] : '');
     setSizesInput(prod.sizes ? prod.sizes.join(', ') : '');
     
     setError(null);
@@ -840,58 +840,32 @@ export default function AdminProductsPage() {
                     
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-5 items-start">
                       
-                      {/* Drag and Drop Box */}
+                      {/* Image Preview */}
                       <div>
-                        <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2">Upload de fichier</label>
-                        
-                        {imagePreviewUrl || imageUrl ? (
-                          <div className="relative group rounded-xl overflow-hidden border border-white/10 aspect-video max-h-[160px] bg-black/40 flex items-center justify-center">
+                        <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2">Aperçu du produit</label>
+                        {imageUrl ? (
+                          <div className="relative rounded-xl overflow-hidden border border-white/10 aspect-video max-h-[160px] bg-black/40 flex items-center justify-center">
                             <img
-                              src={imagePreviewUrl || imageUrl || ''}
+                              src={imageUrl}
                               alt="Aperçu du produit"
                               className="h-full w-full object-contain"
                             />
-                            <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                              {imageFile ? (
-                                <button
-                                  type="button"
-                                  onClick={() => setImageFile(null)}
-                                  className="px-4 py-2 bg-rose-600 hover:bg-rose-500 text-white text-[10px] font-black uppercase tracking-widest rounded-xl transition-all shadow-lg shadow-rose-600/20"
-                                >
-                                  Retirer le fichier
-                                </button>
-                              ) : (
-                                <span className="text-[9px] font-black uppercase tracking-widest text-emerald-400 bg-emerald-500/10 px-3 py-1.5 rounded-full border border-emerald-500/20">
-                                  Image enregistrée
-                                </span>
-                              )}
-                            </div>
                           </div>
                         ) : (
-                          <div className="border-2 border-dashed border-white/10 hover:border-emerald-500/50 rounded-xl p-6 transition-all bg-white/[0.015] hover:bg-white/[0.035] text-center relative cursor-pointer group flex flex-col items-center justify-center gap-2 min-h-[130px]">
-                            <input
-                              id="prod-image-file"
-                              type="file"
-                              accept="image/*"
-                              onChange={(e) => setImageFile(e.target.files?.[0] || null)}
-                              className="absolute inset-0 opacity-0 cursor-pointer w-full h-full z-10"
-                            />
-                            <Upload className="w-7 h-7 text-slate-500 group-hover:text-emerald-400 transition-colors" />
-                            <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest">
-                              Glisser-déposer ou cliquer
-                            </span>
-                            <span className="text-[8px] text-slate-500 uppercase tracking-wider">
-                              Format JPG, PNG, WEBP uniquement
+                          <div className="border border-white/10 rounded-xl p-6 bg-white/[0.015] text-center flex flex-col items-center justify-center gap-2 min-h-[130px]">
+                            <ImageIcon className="w-7 h-7 text-slate-600" />
+                            <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">
+                              Aucune image chargée
                             </span>
                           </div>
                         )}
                       </div>
 
-                      {/* Manual Image URL Input fallback */}
+                      {/* Manual Image URL Input */}
                       <div className="space-y-4">
                         <div>
                           <label htmlFor="prod-image-url" className="block text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2">
-                            Lien direct (URL fallback)
+                            Lien direct (URL)
                           </label>
                           <input
                             id="prod-image-url"
@@ -901,9 +875,6 @@ export default function AdminProductsPage() {
                             placeholder="https://images.unsplash.com/photo-..."
                             className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white text-sm focus:border-emerald-500/50 outline-none transition-all"
                           />
-                          <p className="text-[9px] text-slate-500 leading-normal mt-2">
-                            * Note : La sélection d'un fichier ci-contre écrasera cette URL lors de la sauvegarde avec l'adresse du serveur Supabase Storage.
-                          </p>
                         </div>
                       </div>
 
@@ -1046,20 +1017,19 @@ export default function AdminProductsPage() {
                   {/* Attributes (Colors & Sizes CSV) */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-zinc-900/30 p-5 border border-white/5 rounded-2xl">
                     <div>
-                      <label htmlFor="prod-colors" className="block text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2 flex items-center justify-between">
-                        <span>Couleurs</span>
-                        <span className="text-slate-600 font-bold uppercase tracking-wider">(saisie CSV)</span>
+                      <label htmlFor="prod-colors" className="block text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2">
+                        Couleur principale
                       </label>
                       <input 
                         id="prod-colors" 
                         type="text" 
                         value={colorsInput} 
                         onChange={e => setColorsInput(e.target.value)} 
-                        placeholder="Noir, Blanc, Rouge, Bleu" 
+                        placeholder="Ex: Noir (ou Blanc, Rouge...)" 
                         className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white text-sm focus:border-emerald-500/50 outline-none transition-all" 
                       />
                       <span className="inline-block text-[8px] text-slate-500 mt-2 leading-relaxed">
-                        Entrez les couleurs séparées par des virgules.
+                        Entrez une seule couleur principale pour ce produit.
                       </span>
                     </div>
 

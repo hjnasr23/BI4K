@@ -493,53 +493,28 @@ export default function AdminCategoriesPage() {
                     
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-5 items-start">
                       
-                      {/* Drag & Drop zone */}
+                      {/* Image Preview */}
                       <div>
-                        <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2">Image de la catégorie</label>
-                        {imagePreviewUrl || imageUrl ? (
-                          <div className="relative group rounded-xl overflow-hidden border border-white/10 aspect-video max-h-[140px] bg-black/40 flex items-center justify-center">
+                        <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2">Aperçu de la catégorie</label>
+                        {imageUrl ? (
+                          <div className="relative rounded-xl overflow-hidden border border-white/10 aspect-video max-h-[140px] bg-black/40 flex items-center justify-center">
                             <img
-                              src={imagePreviewUrl || imageUrl || ''}
+                              src={imageUrl}
                               alt="Aperçu catégorie"
                               className="h-full w-full object-contain"
                             />
-                            <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                              {imageFile ? (
-                                <button
-                                  type="button"
-                                  onClick={() => setImageFile(null)}
-                                  className="px-3 py-1.5 bg-rose-600 hover:bg-rose-500 text-white text-[9px] font-black uppercase tracking-widest rounded-xl transition-all"
-                                >
-                                  Retirer le fichier
-                                </button>
-                              ) : (
-                                <span className="text-[8px] font-black uppercase tracking-widest text-emerald-400 bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/20">
-                                  Image sauvegardée
-                                </span>
-                              )}
-                            </div>
                           </div>
                         ) : (
-                          <div className="border-2 border-dashed border-white/10 hover:border-emerald-500/50 rounded-xl p-5 transition-all bg-white/[0.015] hover:bg-white/[0.035] text-center relative cursor-pointer group flex flex-col items-center justify-center gap-2 min-h-[110px]">
-                            <input
-                              id="cat-image-file"
-                              type="file"
-                              accept="image/*"
-                              onChange={(e) => setImageFile(e.target.files?.[0] || null)}
-                              className="absolute inset-0 opacity-0 cursor-pointer w-full h-full z-10"
-                            />
-                            <Upload className="w-6 h-6 text-slate-500 group-hover:text-emerald-400 transition-colors" />
-                            <span className="text-[9px] font-black text-slate-300 uppercase tracking-widest">
-                              Glisser-déposer ou cliquer
-                            </span>
-                            <span className="text-[7px] text-slate-500 uppercase tracking-wider">
-                              JPG, PNG, WEBP uniquement
+                          <div className="border border-white/10 rounded-xl p-5 bg-white/[0.015] text-center flex flex-col items-center justify-center gap-2 min-h-[110px]">
+                            <ImageIcon className="w-6 h-6 text-slate-600" />
+                            <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest">
+                              Aucune image chargée
                             </span>
                           </div>
                         )}
                       </div>
 
-                      {/* Manual Image URL fallback */}
+                      {/* Manual Image URL */}
                       <div className="space-y-4">
                         <div>
                           <label htmlFor="cat-image-url" className="block text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2">
@@ -553,9 +528,6 @@ export default function AdminCategoriesPage() {
                             placeholder="https://images.unsplash.com/photo-..."
                             className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white text-sm focus:border-emerald-500/50 outline-none transition-all"
                           />
-                          <p className="text-[9px] text-slate-500 leading-normal mt-2 select-none">
-                            L'upload d'un fichier écrasera automatiquement ce lien avec l'URL finale du bucket Supabase.
-                          </p>
                         </div>
                       </div>
 

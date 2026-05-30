@@ -79,7 +79,7 @@ export default function TShirtEditor() {
   // Cart Actions
   const addToCart = useCartStore((state) => state.addToCart);
   const [showToast, setShowToast] = useState(false);
-  const { showToast: triggerGlobalToast, user } = useApp();
+  const { showToast: triggerGlobalToast, user, profile } = useApp();
 
   // Pending image URL — queued when AI finishes before canvas is ready
   const [pendingImageUrl, setPendingImageUrl] = useState<string | null>(null);
@@ -116,7 +116,9 @@ export default function TShirtEditor() {
     productData.sale_ends_at !== null &&
     new Date(productData.sale_ends_at) > now;
 
-  const currentPrice = isSaleActive ? productData.sale_price : (productData?.price || 249);
+  const hasValidDiscount = profile?.discount_rate > 0 && profile?.discount_expires_at && new Date(profile.discount_expires_at) > now;
+  const originalPrice = isSaleActive ? productData.sale_price : (productData?.price || 249);
+  const currentPrice = hasValidDiscount ? originalPrice * (1 - profile.discount_rate / 100) : originalPrice;
 
   const addLog = useCallback((message: string, type: StudioLog['type'] = 'system') => {
     const newLog: StudioLog = {
@@ -532,12 +534,6 @@ export default function TShirtEditor() {
       }
 
       // ── Step 5: Add to cart ──
-      const now = new Date();
-      const isSaleActive = productData &&
-        productData.sale_price !== null &&
-        productData.sale_ends_at !== null &&
-        new Date(productData.sale_ends_at) > now;
-      const currentPrice = isSaleActive ? productData.sale_price : (productData?.price || 249);
 
       addToCart({
         id: queryProductId || "unknown",
@@ -736,7 +732,16 @@ export default function TShirtEditor() {
           {/* Price */}
           <div className="flex items-baseline justify-between border-t border-white/8 pt-4">
             <span className="text-xs text-white/40 font-medium">Total</span>
-            <span className="text-3xl font-black tracking-tight text-brand-yellow">{currentPrice * quantity} <span className="text-base font-bold text-brand-yellow/60">MAD</span></span>
+            <div className="text-right">
+              {hasValidDiscount ? (
+                <>
+                  <span className="block text-xs font-bold text-neutral-500 line-through mb-1">{(originalPrice * quantity) % 1 === 0 ? (originalPrice * quantity) : (originalPrice * quantity).toFixed(2)} MAD</span>
+                  <span className="text-3xl font-black tracking-tight text-red-500">{(currentPrice * quantity) % 1 === 0 ? (currentPrice * quantity) : (currentPrice * quantity).toFixed(2)} <span className="text-base font-bold text-red-500/60">MAD</span></span>
+                </>
+              ) : (
+                <span className="text-3xl font-black tracking-tight text-brand-yellow">{currentPrice * quantity} <span className="text-base font-bold text-brand-yellow/60">MAD</span></span>
+              )}
+            </div>
           </div>
         </motion.div>
 

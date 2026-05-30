@@ -158,6 +158,33 @@ export default function CheckoutPage() {
         throw error;
       }
 
+      // Decrement product inventory stocks
+      if (Array.isArray(items)) {
+        for (const item of items) {
+          const productId = item.product_id || item.id;
+          if (productId) {
+            // 1. Get current stock
+            const { data: product } = await supabase
+              .from('products')
+              .select('stock')
+              .eq('id', productId)
+              .maybeSingle();
+              
+            if (product && product.stock > 0) {
+              // 2. Calculate new stock (fallback to 1 if quantity is undefined)
+              const qty = item.quantity || 1;
+              const newStock = Math.max(0, product.stock - qty); 
+              
+              // 3. Update the database
+              await supabase
+                .from('products')
+                .update({ stock: newStock })
+                .eq('id', productId);
+            }
+          }
+        }
+      }
+
       // Success
       clearCart();
       setIsSuccess(true);
