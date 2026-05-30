@@ -5,7 +5,8 @@ import * as fabric from "fabric";
 import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { useCartStore } from "@/lib/store/cartStore";
-import { supabase } from "@/lib/supabase";
+import { createClient } from "@/lib/supabase/client";
+import { useApp } from "@/lib/store";
 import WebFont from "webfontloader";
 import { motion, AnimatePresence } from "motion/react";
 import {
@@ -28,6 +29,7 @@ interface StudioLog {
 const GOOGLE_FONTS = ["Inter", "Oswald", "Pacifico", "Playfair Display", "Bangers", "Monoton"];
 
 export default function TShirtEditor() {
+  const supabase = createClient();
   const fabricRef = useRef<fabric.Canvas | null>(null);   // Holds live Fabric instance
   const [fabricCanvas, setFabricCanvas] = useState<fabric.Canvas | null>(null); // For triggering UI re-renders
   const [prompt, setPrompt] = useState("");
@@ -77,6 +79,7 @@ export default function TShirtEditor() {
   // Cart Actions
   const addToCart = useCartStore((state) => state.addToCart);
   const [showToast, setShowToast] = useState(false);
+  const { showToast: triggerGlobalToast, user } = useApp();
 
   // Pending image URL — queued when AI finishes before canvas is ready
   const [pendingImageUrl, setPendingImageUrl] = useState<string | null>(null);
@@ -156,8 +159,8 @@ export default function TShirtEditor() {
     if (!fabricCanvas || !pendingImageUrl) return;
     applyImageToCanvas(pendingImageUrl, fabricCanvas);
     setPendingImageUrl(null);
-  // applyImageToCanvas is stable (useCallback with [] deps)
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // applyImageToCanvas is stable (useCallback with [] deps)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fabricCanvas, pendingImageUrl]);
 
   useEffect(() => {
@@ -281,7 +284,7 @@ export default function TShirtEditor() {
       console.error("Fabric Rendering Error:", err);
       addLogRef.current("Failed to paint AI image on canvas", "error");
     });
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const addText = () => {
@@ -305,6 +308,72 @@ export default function TShirtEditor() {
   // ==========================================================
   // SECURE CLOUDFLARE AI GENERATION — Stable Diffusion XL
   // ==========================================================
+
+  // Helper: composite the garment background + Fabric canvas into one merged PNG blob
+  // Accounts for Fabric.js retina/devicePixelRatio scaling to preserve exact visual placement
+  const generateMockupBlob = useCallback(async (): Promise<Blob | null> => {
+    const fabricCanvas = fabricRef.current;
+    if (!fabricCanvas) return null;
+
+    // Deselect any active objects to remove selection handles/borders from the export
+    fabricCanvas.discardActiveObject();
+    fabricCanvas.renderAll();
+
+    // Use the logical (CSS) dimensions for our output — this is what the user sees
+    const logicalWidth = fabricCanvas.getWidth();
+    const logicalHeight = fabricCanvas.getHeight();
+
+    // The actual Fabric canvas element may be scaled by devicePixelRatio (retina)
+    const fabricEl = fabricCanvas.getElement();
+    const elWidth = fabricEl.width;   // actual pixel width (e.g. 1000 on 2x retina)
+    const elHeight = fabricEl.height; // actual pixel height
+
+    // Create an offscreen canvas matching the Fabric element's ACTUAL pixel dimensions
+    // so that drawImage copies 1:1 without any rescaling that would distort placement
+    const offscreen = document.createElement('canvas');
+    offscreen.width = elWidth;
+    offscreen.height = elHeight;
+    const ctx = offscreen.getContext('2d');
+    if (!ctx) return null;
+
+    // 1. Draw the garment background image, scaled to fill the full actual pixel area
+    try {
+      const bgImg = await new Promise<HTMLImageElement>((resolve, reject) => {
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        img.onload = () => resolve(img);
+        img.onerror = reject;
+        img.src = mockupUrl;
+      });
+      ctx.drawImage(bgImg, 0, 0, elWidth, elHeight);
+    } catch (err) {
+      console.warn('Could not load garment background for mockup composite:', err);
+      ctx.fillStyle = '#111';
+      ctx.fillRect(0, 0, elWidth, elHeight);
+    }
+
+    // 2. Draw the Fabric canvas element on top — 1:1 pixel match, no rescaling
+    ctx.drawImage(fabricEl, 0, 0);
+
+    // 3. Export as blob at the logical resolution (500×500) for consistent file sizes
+    // by scaling down from retina to logical via a second offscreen canvas
+    if (elWidth !== logicalWidth || elHeight !== logicalHeight) {
+      const output = document.createElement('canvas');
+      output.width = logicalWidth;
+      output.height = logicalHeight;
+      const outCtx = output.getContext('2d');
+      if (!outCtx) return null;
+      outCtx.drawImage(offscreen, 0, 0, logicalWidth, logicalHeight);
+      return new Promise<Blob | null>((resolve) => {
+        output.toBlob((blob) => resolve(blob), 'image/png', 1);
+      });
+    }
+
+    return new Promise<Blob | null>((resolve) => {
+      offscreen.toBlob((blob) => resolve(blob), 'image/png', 1);
+    });
+  }, [mockupUrl]);
+
   const generateWithCloudflareAI = async (): Promise<void> => {
     if (!prompt.trim()) return;
 
@@ -321,14 +390,11 @@ export default function TShirtEditor() {
     }, 300);
 
     try {
-      // Append apparel-optimized keywords to user prompt
       const enhancedPrompt = `${prompt.trim()}, vector art, t-shirt design, isolated on pure white background, clean edges, no background noise, high contrast, print ready`;
 
       const response = await fetch('/api/generate-image', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ prompt: enhancedPrompt }),
       });
 
@@ -347,7 +413,7 @@ export default function TShirtEditor() {
       setLastGeneratedUrl(imageUrl);
 
       if (!fabricRef.current) {
-        console.warn('generateWithCloudflareAI: fabricRef.current is null — queuing image for later render');
+        console.warn('generateWithCloudflareAI: fabricRef.current is null');
         addLog('Canvas initializing — design queued for rendering.', 'system');
         setPendingImageUrl(imageUrl);
         setIsGenerating(false);
@@ -355,11 +421,11 @@ export default function TShirtEditor() {
         return;
       }
 
-      const canvas = fabricRef.current;
-      applyImageToCanvas(imageUrl, canvas);
+      // Render the AI design on canvas — user can now reposition/scale it freely
+      applyImageToCanvas(imageUrl, fabricRef.current);
 
       setIsGenerating(false);
-      // Reset progress after a brief moment
+      addLog("Design ready — position & scale it, then click 'Ajouter au panier' to save.", "success");
       setTimeout(() => setGenerationProgress(0), 1500);
     } catch (err: any) {
       clearInterval(progressInterval);
@@ -371,24 +437,20 @@ export default function TShirtEditor() {
   };
 
   const [isFinalizing, setIsFinalizing] = useState(false);
-  const handleAddToCart = () => {
+  const handleAddToCart = async () => {
     if (!fabricRef.current) {
       console.error('handleAddToCart: fabricRef.current is null');
       return;
     }
 
     setIsFinalizing(true);
-    addLog("Capturing design layer & coordinates...", "system");
+    addLog("Capturing final design placement & compositing mockup...", "system");
     try {
       const canvas = fabricRef.current;
 
-      // Export the isolated transparent design (no background, just user artwork)
-      const transparentDesign = canvas.toDataURL({ format: 'png', quality: 1, multiplier: 1 });
-      const designUrl = transparentDesign || "";
-
-      // Extract placement coordinates from active design element (or fallback to clip path printable zone)
+      // ── Step 1: Extract placement coordinates BEFORE deselecting ──
       const activeObject = canvas.getActiveObject() || canvas.getObjects()[0];
-      
+
       const clipPath = canvas.clipPath;
       const clipX = (clipPath as any)?.left ?? 150;
       const clipY = (clipPath as any)?.top ?? 150;
@@ -398,26 +460,78 @@ export default function TShirtEditor() {
       const canvasH = canvas.getHeight();
 
       let finalCoordinates = {
-        x: clipX,
-        y: clipY,
-        width: clipW,
-        height: clipH,
-        canvasWidth: canvasW,
-        canvasHeight: canvasH
+        x: clipX, y: clipY, width: clipW, height: clipH,
+        canvasWidth: canvasW, canvasHeight: canvasH
       };
 
       if (activeObject) {
         const rect = activeObject.getBoundingRect();
         finalCoordinates = {
-          x: Math.round(rect.left),
-          y: Math.round(rect.top),
-          width: Math.round(rect.width),
-          height: Math.round(rect.height),
-          canvasWidth: canvasW,
-          canvasHeight: canvasH
+          x: Math.round(rect.left), y: Math.round(rect.top),
+          width: Math.round(rect.width), height: Math.round(rect.height),
+          canvasWidth: canvasW, canvasHeight: canvasH
         };
       }
 
+      // ── Step 2: Deselect to remove selection handles, then capture ──
+      canvas.discardActiveObject();
+      canvas.renderAll();
+
+      // Export the isolated transparent design (no background, just user artwork)
+      const transparentDesign = canvas.toDataURL({ format: 'png', quality: 1, multiplier: 1 });
+      const designUrl = transparentDesign || "";
+
+      // ── Step 3: Generate the merged product mockup (garment + user-positioned design) ──
+      addLog("Compositing full product mockup...", "system");
+      const mockupBlob = await generateMockupBlob();
+
+      // ── Step 4: Upload mockup & save creation to database ──
+      let savedMockupUrl: string | null = null;
+      const { data: { session } } = await supabase.auth.getSession();
+
+      if (session?.user && mockupBlob) {
+        const activeUserId = session.user.id;
+        const filename = `mockup_${activeUserId}_${Date.now()}.png`;
+
+        addLog("Uploading merged mockup to cloud storage...", "system");
+        const { error: uploadError } = await supabase.storage
+          .from('user_designs')
+          .upload(filename, mockupBlob, { contentType: 'image/png', upsert: true });
+
+        if (!uploadError) {
+          const { data } = supabase.storage
+            .from('user_designs')
+            .getPublicUrl(filename);
+          if (data?.publicUrl) {
+            savedMockupUrl = data.publicUrl;
+            addLog("Full product mockup uploaded ✓", "system");
+          }
+        } else {
+          console.error("Storage upload error:", uploadError);
+          addLog("Failed to upload mockup to cloud storage.", "error");
+        }
+
+        // Insert creation record into the creations table
+        const selectedProductId = queryProductId || productData?.id || "cmosndxll00000eps60qnuw76";
+        const { error: insertErr } = await supabase.from('creations').insert([{
+          user_id: activeUserId,
+          product_id: selectedProductId,
+          prompt: prompt.trim(),
+          image_url: savedMockupUrl || designUrl
+        }]);
+
+        if (!insertErr) {
+          addLog("Design saved to your creations!", "success");
+          triggerGlobalToast("Design sauvegardé dans vos créations !", "success");
+        } else {
+          console.error("Database insert error:", insertErr);
+          addLog("Failed to save design to your creations database.", "error");
+        }
+      } else if (!session?.user) {
+        addLog("Not logged in — design will not be saved permanently.", "system");
+      }
+
+      // ── Step 5: Add to cart ──
       const now = new Date();
       const isSaleActive = productData &&
         productData.sale_price !== null &&
@@ -431,10 +545,9 @@ export default function TShirtEditor() {
         price: currentPrice,
         size: querySize,
         quantity: quantity,
-        image_url: productData?.image_url || mockupUrl,
+        image_url: savedMockupUrl || productData?.image_url || mockupUrl,
         design_url: designUrl,
         coordinates: finalCoordinates,
-        // Legacy fields for backward compatibility
         mockupUrl: mockupUrl,
         finalMockup: designUrl
       });
@@ -550,13 +663,12 @@ export default function TShirtEditor() {
             whileTap={{ scale: 0.97 }}
             onClick={() => generateWithCloudflareAI()}
             disabled={isGenerating || !prompt.trim()}
-            className={`w-full py-3 rounded-lg font-bold text-sm tracking-wide transition-all flex items-center justify-center gap-2 ${
-              isGenerating
+            className={`w-full py-3 rounded-lg font-bold text-sm tracking-wide transition-all flex items-center justify-center gap-2 ${isGenerating
                 ? 'bg-brand-blue/50 text-white/70 cursor-wait'
                 : !prompt.trim()
-                ? 'bg-white/5 text-white/20 cursor-not-allowed border border-white/10'
-                : 'bg-brand-blue text-white hover:bg-brand-blue/90 shadow-lg shadow-brand-blue/20'
-            }`}
+                  ? 'bg-white/5 text-white/20 cursor-not-allowed border border-white/10'
+                  : 'bg-brand-blue text-white hover:bg-brand-blue/90 shadow-lg shadow-brand-blue/20'
+              }`}
           >
             {isGenerating ? (
               <><Loader2 className="w-4 h-4 animate-spin" /> Génération… {Math.round(generationProgress)}%</>
@@ -590,12 +702,11 @@ export default function TShirtEditor() {
                   className="flex gap-3 text-[9px] font-mono"
                 >
                   <span className="text-white/20 flex-shrink-0">[{log.time}]</span>
-                  <span className={`truncate ${
-                    log.type === 'success' ? 'text-emerald-400' :
-                    log.type === 'error'   ? 'text-red-400' :
-                    log.type === 'ai'      ? 'text-brand-blue' :
-                                            'text-white/35'
-                  }`}>{log.message}</span>
+                  <span className={`truncate ${log.type === 'success' ? 'text-emerald-400' :
+                      log.type === 'error' ? 'text-red-400' :
+                        log.type === 'ai' ? 'text-brand-blue' :
+                          'text-white/35'
+                    }`}>{log.message}</span>
                 </motion.div>
               ))}
             </AnimatePresence>
