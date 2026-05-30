@@ -3,14 +3,13 @@
 import Link from "next/link";
 import { useApp } from "@/lib/store";
 import { translations } from "@/lib/translations";
-import { Sun, Moon, Globe, Boxes, ShoppingCart, User as UserIcon, LogOut } from "lucide-react";
+import { Sun, Moon, Globe, Boxes, ShoppingCart, User as UserIcon, LogOut, Package, Sparkles, Settings, LayoutDashboard } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { useState, useEffect } from "react";
-import { Clipboard } from "lucide-react";
 import { useCartStore } from "@/lib/store/cartStore";
 
 export function Navbar() {
-  const { lang, setLang, theme, setTheme, user, setIsAuthModalOpen, showToast, openAuthModal } = useApp();
+  const { lang, setLang, theme, setTheme, user, showToast, openAuthModal } = useApp();
   const t = translations[lang];
   const supabase = createClient();
   const [scrolled, setScrolled] = useState(false);
@@ -136,40 +135,55 @@ export function Navbar() {
             <div className="flex gap-2 items-center ml-2">
               {user ? (
                 <div className="relative">
+                  {/* Premium Avatar Trigger */}
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
                       setDropdownOpen(!dropdownOpen);
                     }}
-                    className="w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-blue/20 to-brand-yellow/20 border border-brand-blue/30 flex items-center justify-center hover:scale-[1.05] transition-all shadow-lg hover:shadow-brand-blue/10"
-                    title="User profile"
+                    className="w-10 h-10 rounded-full bg-gradient-to-br from-brand-blue to-brand-yellow flex items-center justify-center hover:scale-[1.05] active:scale-[0.97] transition-all shadow-lg shadow-brand-blue/20 text-white font-bold text-sm"
+                    title="User menu"
                   >
-                    <UserIcon className="w-5 h-5 text-brand-blue" />
+                    {(user?.user_metadata?.full_name?.charAt(0) || user?.email?.charAt(0) || 'U').toUpperCase()}
                   </button>
-                  
+
                   {dropdownOpen && (
-                    <div className="absolute right-0 mt-3 w-64 bg-background/95 backdrop-blur-3xl border border-white/10 rounded-[1.5rem] shadow-2xl p-4 flex flex-col gap-2 z-[999] animate-reveal">
-                      <div className="px-3 py-2.5 border-b border-white/10 mb-1.5 text-left">
-                        <span className="block text-[9px] font-black uppercase tracking-widest text-slate-500">Compte</span>
-                        <span className="block text-xs font-bold text-white truncate max-w-full mt-0.5" title={user.email}>{user.email}</span>
+                    <div className="absolute right-0 mt-4 w-64 backdrop-blur-xl bg-white/95 dark:bg-neutral-900/95 border border-neutral-200 dark:border-white/10 shadow-2xl rounded-2xl p-2 z-50 animate-reveal">
+                      {/* Email Header */}
+                      <div className="px-3 py-3 border-b border-neutral-100 dark:border-white/5 mb-1">
+                        <span className="block text-[9px] font-black uppercase tracking-widest text-neutral-400 dark:text-neutral-500">Compte</span>
+                        <span className="block text-xs font-bold text-neutral-900 dark:text-white truncate mt-0.5" title={user.email ?? ''}>{user.email}</span>
                       </div>
-                      
-                      <Link
-                        href="/account/orders"
-                        className="flex items-center gap-3 px-3 py-3 rounded-xl text-left text-xs font-black uppercase tracking-wider text-slate-400 hover:text-white hover:bg-white/5 transition-all"
-                        onClick={() => setDropdownOpen(false)}
-                      >
-                        <Clipboard className="w-4 h-4 text-brand-blue" />
-                        {lang === 'fr' ? 'Mes commandes' : 'My Orders'}
-                      </Link>
-                      
-                      <button
-                        onClick={handleSignOut}
-                        className="flex items-center gap-3 px-3 py-3 rounded-xl text-left text-xs font-black uppercase tracking-wider text-rose-400 hover:text-rose-300 hover:bg-rose-500/5 transition-all w-full"
-                      >
-                        <LogOut className="w-4 h-4" />
-                        {lang === 'fr' ? 'Déconnexion' : 'Sign Out'}
-                      </button>
+
+                      {/* Navigation Links */}
+                      {[
+                        { icon: LayoutDashboard, label: lang === 'fr' ? 'Tableau de bord' : 'Dashboard', href: '/dashboard' },
+                        { icon: UserIcon,        label: lang === 'fr' ? 'Mon Profil'       : 'My Profile',   href: '/dashboard/profile' },
+                        { icon: Sparkles,         label: lang === 'fr' ? 'Mes Créations'    : 'My Creations', href: '/dashboard/creations' },
+                        { icon: Package,          label: lang === 'fr' ? 'Mes Commandes'    : 'My Orders',    href: '/dashboard/orders' },
+                        { icon: Settings,         label: lang === 'fr' ? 'Paramètres'       : 'Settings',     href: '/dashboard/settings' },
+                      ].map(({ icon: Icon, label, href }) => (
+                        <Link
+                          key={href}
+                          href={href}
+                          onClick={() => setDropdownOpen(false)}
+                          className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-white/5 hover:text-neutral-900 dark:hover:text-white transition-all"
+                        >
+                          <Icon className="w-4 h-4 text-neutral-400 dark:text-neutral-500 shrink-0" />
+                          {label}
+                        </Link>
+                      ))}
+
+                      {/* Sign Out */}
+                      <div className="mt-1 pt-1 border-t border-neutral-100 dark:border-white/5">
+                        <button
+                          onClick={handleSignOut}
+                          className="flex items-center gap-3 w-full px-3 py-2.5 rounded-xl text-sm font-semibold text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 transition-all"
+                        >
+                          <LogOut className="w-4 h-4 shrink-0" />
+                          {lang === 'fr' ? 'Déconnexion' : 'Sign Out'}
+                        </button>
+                      </div>
                     </div>
                   )}
                 </div>

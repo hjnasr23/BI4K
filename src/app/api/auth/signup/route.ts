@@ -12,7 +12,12 @@ const supabase = createClient(
 );
 
 export async function POST(req: NextRequest) {
-  const { email, password, fullName } = await req.json();
+  const body = await req.json();
+  const email = body.email;
+  const password = body.password;
+  const fullName = body.fullName || body.full_name || '';
+  const phone = body.phone || '';
+  const address = body.address || body.shippingAddress || body.shipping_address || '';
 
   // ── Validate input ────────────────────────────────────────
   if (!email || !password) {
@@ -27,7 +32,11 @@ export async function POST(req: NextRequest) {
     email,
     password,
     options: {
-      data: { full_name: fullName ?? '' },
+      data: { 
+        full_name: fullName,
+        phone: phone,
+        address: address,
+      },
     },
   });
 
@@ -40,14 +49,29 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Signup failed — no user returned.' }, { status: 500 });
   }
 
-  // ── Upsert UserProfile row ────────────────────────────────
+  // ── Upsert profiles row ───────────────────────────────────
   // The DB trigger handles this automatically, but we upsert here as a
   // safety net in case the trigger hasn't run yet.
-  await supabase.from('UserProfile').upsert({
+  await supabase.from('profiles').upsert({
     id:        user.id,
-    full_name: fullName ?? '',
-    preferred_lang: 'fr',
+    full_name: fullName,
+    phone:     phone,
+    address:   address,
+    updated_at: new Date().toISOString()
   }, { onConflict: 'id' });
+
+  // Backup sync to UserProfile for compatibility
+  try {
+    await supabase.from('UserProfile').upsert({
+      id:        user.id,
+      full_name: fullName,
+      phone:     phone,
+      shipping_address: { street: address },
+      preferred_lang: 'fr',
+    }, { onConflict: 'id' });
+  } catch (syncErr) {
+    console.warn('Backup UserProfile sync failed/skipped:', syncErr);
+  }
 
   return NextResponse.json({
     ok: true,

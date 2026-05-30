@@ -16,7 +16,7 @@ export interface AuthUser {
 interface UseAuthReturn {
   user:     AuthUser | null;
   loading:  boolean;
-  signUp:   (email: string, password: string, fullName?: string) => Promise<{ error: string | null; requiresConfirmation?: boolean }>;
+  signUp:   (email: string, password: string, fullName?: string, phone?: string, address?: string) => Promise<{ error: string | null; requiresConfirmation?: boolean }>;
   signIn:   (email: string, password: string) => Promise<{ error: string | null }>;
   signOut:  () => Promise<void>;
   refreshProfile: () => Promise<void>;
@@ -74,13 +74,19 @@ export function useAuth(): UseAuthReturn {
   const signUp = useCallback(async (
     email: string,
     password: string,
-    fullName?: string
+    fullName?: string,
+    phone?: string,
+    address?: string
   ): Promise<{ error: string | null; requiresConfirmation?: boolean }> => {
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
-        data: { full_name: fullName ?? '' },
+        data: { 
+          full_name: fullName ?? '',
+          phone: phone ?? '',
+          address: address ?? '',
+        },
       },
     });
 
@@ -92,7 +98,9 @@ export function useAuth(): UseAuthReturn {
         await supabase.from('profiles').upsert({
           id: data.user.id,
           full_name: fullName ?? '',
-          preferred_lang: 'fr',
+          phone: phone ?? '',
+          address: address ?? '',
+          updated_at: new Date().toISOString(),
         });
       } catch (dbErr) {
         console.error('Failed to upsert profiles:', dbErr);

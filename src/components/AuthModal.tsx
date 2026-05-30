@@ -1,31 +1,54 @@
 'use client';
+
 import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useApp } from '@/lib/store';
 import { createClient } from '@/lib/supabase/client';
-import { X, Loader2, Mail, Lock, Sparkles, ArrowRight, ShieldCheck, UserPlus, LogIn, User, Phone, MapPin } from 'lucide-react';
+import { X, Mail, Lock, Eye, EyeOff, Sparkles, ShieldCheck, User, Phone, MapPin, Boxes } from 'lucide-react';
 
-const authSchema = z.object({
+// ── Validation Schemas ────────────────────────────────────────
+const loginSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
   password: z.string().min(6, "Password must be at least 6 characters"),
-  fullName: z.string().optional(),
-  phone: z.string().optional(),
-  address: z.string().optional(),
 });
+type LoginFormValues = z.infer<typeof loginSchema>;
 
-type AuthFormValues = z.infer<typeof authSchema>;
+const signupSchema = z.object({
+  fullName: z.string().min(3, "Full Name must be at least 3 characters"),
+  email: z.string().email("Please enter a valid email address"),
+  phone: z.string().min(10, "Phone must be at least 10 characters"),
+  address: z.string().min(5, "Address must be at least 5 characters"),
+  password: z.string().min(6, "Password must be at least 6 characters"),
+});
+type SignupFormValues = z.infer<typeof signupSchema>;
 
 export function AuthModal() {
   const { isAuthModalOpen, setIsAuthModalOpen, lang, showToast, authModalView } = useApp();
   const [isLogin, setIsLogin] = useState(true);
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
 
-  const { register, handleSubmit, formState: { errors }, reset } = useForm<AuthFormValues>({
-    resolver: zodResolver(authSchema)
+  // Forms
+  const { 
+    register: registerLogin, 
+    handleSubmit: handleLoginSubmit, 
+    formState: { errors: loginErrors },
+    reset: resetLogin
+  } = useForm<LoginFormValues>({
+    resolver: zodResolver(loginSchema)
+  });
+
+  const { 
+    register: registerSignup, 
+    handleSubmit: handleSignupSubmit, 
+    formState: { errors: signupErrors },
+    reset: resetSignup
+  } = useForm<SignupFormValues>({
+    resolver: zodResolver(signupSchema)
   });
 
   const supabase = createClient();
@@ -33,6 +56,8 @@ export function AuthModal() {
   useEffect(() => {
     if (isAuthModalOpen) {
       setIsLogin(authModalView === 'login');
+      setErrorMsg(null);
+      setSuccessMsg(null);
     }
   }, [isAuthModalOpen, authModalView]);
 
@@ -40,85 +65,99 @@ export function AuthModal() {
 
   const closeModal = () => {
     setIsAuthModalOpen(false);
-    reset();
+    resetLogin();
+    resetSignup();
     setErrorMsg(null);
     setSuccessMsg(null);
   };
 
-  const onSubmit = async (data: AuthFormValues) => {
+  const onSubmitLogin = async (data: LoginFormValues) => {
     setLoading(true);
     setErrorMsg(null);
     setSuccessMsg(null);
 
     try {
-      if (isLogin) {
-        const { data: authData, error } = await supabase.auth.signInWithPassword({
-          email: data.email,
-          password: data.password,
-        });
-        if (error) throw error;
+      const { data: authData, error } = await supabase.auth.signInWithPassword({
+        email: data.email,
+        password: data.password,
+      });
+      if (error) throw error;
 
-        // Upsert profiles on login just in case
-        if (authData.user) {
-          try {
-            await supabase.from('profiles').upsert({
-              id: authData.user.id,
-              full_name: authData.user.user_metadata?.full_name ?? '',
-              preferred_lang: 'fr',
-            });
-          } catch (dbErr) {
-            console.error('Failed to upsert profiles on login:', dbErr);
-          }
+      // Upsert profiles on login just in case
+      if (authData.user) {
+        try {
+          await supabase.from('profiles').upsert({
+            id: authData.user.id,
+            full_name: authData.user.user_metadata?.full_name ?? '',
+            preferred_lang: 'fr',
+          });
+        } catch (dbErr) {
+          console.error('Failed to upsert profiles on login:', dbErr);
         }
-
-        showToast(lang === 'fr' ? 'Connexion réussie !' : 'Login successful!', 'success');
-        closeModal();
-      } else {
-        const { data: authData, error } = await supabase.auth.signUp({
-          email: data.email,
-          password: data.password,
-          options: {
-            data: {
-              full_name: data.fullName ?? '',
-              phone: data.phone ?? '',
-              address: data.address ?? '',
-            }
-          }
-        });
-        if (error) throw error;
-
-        // Upsert profiles profile
-        if (authData.user) {
-          try {
-            await supabase.from('profiles').upsert({
-              id: authData.user.id,
-              full_name: data.fullName ?? '',
-              phone: data.phone ?? '',
-              shipping_address: data.address ?? '',
-              preferred_lang: 'fr',
-            });
-          } catch (dbErr) {
-            console.error('Failed to upsert profiles on signup:', dbErr);
-          }
-        }
-
-        const requiresConfirmation = authData.session === null;
-        if (requiresConfirmation) {
-          const msg = lang === 'fr' ? 'Compte créé ! Veuillez confirmer votre e-mail.' : 'Account created! Please check your email.';
-          setSuccessMsg(msg);
-          showToast(msg, 'success');
-        } else {
-          const msg = lang === 'fr' ? 'Compte créé avec succès !' : 'Account successfully created!';
-          setSuccessMsg(msg);
-          showToast(msg, 'success');
-        }
-        reset();
       }
+
+      showToast(lang === 'fr' ? 'Connexion réussie !' : 'Login successful!', 'success');
+      closeModal();
     } catch (error: any) {
       let msg = error.message;
       if (error.message === 'Invalid login credentials') {
         msg = lang === 'fr' ? 'Identifiants invalides.' : 'Invalid login credentials.';
-      } else if (error.message === 'User already registered') {
+      }
+      setErrorMsg(msg);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const onSubmitSignup = async (data: SignupFormValues) => {
+    setLoading(true);
+    setErrorMsg(null);
+    setSuccessMsg(null);
+
+    try {
+      const { data: authData, error } = await supabase.auth.signUp({
+        email: data.email,
+        password: data.password,
+        options: {
+          data: {
+            full_name: data.fullName || (data as any).full_name,
+            phone: data.phone,
+            address: data.address,
+          }
+        }
+      });
+      if (error) throw error;
+
+      // Upsert profiles profile
+      if (authData.user) {
+        try {
+          await supabase.from('profiles').upsert({
+            id: authData.user.id,
+            full_name: data.fullName,
+            phone: data.phone,
+            address: data.address,
+            updated_at: new Date().toISOString(),
+          });
+        } catch (dbErr) {
+          console.error('Failed to upsert profiles on signup:', dbErr);
+        }
+      }
+
+      const requiresConfirmation = authData.session === null;
+      if (requiresConfirmation) {
+        const msg = lang === 'fr' ? 'Compte créé ! Veuillez confirmer votre e-mail.' : 'Account created! Please check your email.';
+        setSuccessMsg(msg);
+        showToast(msg, 'success');
+      } else {
+        const msg = lang === 'fr' ? 'Compte créé avec succès !' : 'Account successfully created!';
+        setSuccessMsg(msg);
+        showToast(msg, 'success');
+      }
+      resetSignup();
+      setIsLogin(true);
+    } catch (error: any) {
+      let msg = error.message;
+      if (error.message === 'User already registered') {
         msg = lang === 'fr' ? 'Cet e-mail est déjà enregistré.' : 'User already registered.';
       }
       setErrorMsg(msg);
@@ -128,178 +167,287 @@ export function AuthModal() {
   };
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-background/40 backdrop-blur-xl animate-fadeIn">
-       {/* Animated Background Blobs for Modal */}
-       <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-30">
-          <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-brand-blue/40 rounded-full blur-[80px] animate-blob" />
-          <div className="absolute bottom-1/4 right-1/4 w-64 h-64 bg-brand-yellow/30 rounded-full blur-[80px] animate-blob animation-delay-2000" />
-       </div>
-
-      <div className="relative w-full max-w-lg overflow-hidden glass border-white/10 shadow-[0_50px_100px_rgba(0,0,0,0.5)] rounded-[3rem] animate-reveal">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-md p-4 animate-fadeIn">
+      
+      {/* Card Wrapper */}
+      <div className="flex flex-col md:flex-row w-full max-w-[900px] bg-white dark:bg-neutral-900 rounded-[2.5rem] overflow-hidden shadow-2xl relative animate-reveal">
         
-        <button 
-          onClick={closeModal}
-          className="absolute top-8 right-8 text-foreground/20 hover:text-brand-yellow transition-colors bg-white/5 hover:bg-white/10 rounded-2xl p-3 z-20"
-        >
-          <X className="w-5 h-5" />
-        </button>
+        {/* Left Branding Panel (Hidden on Mobile) */}
+        <div className="hidden md:flex md:w-[35%] bg-gradient-to-b from-blue-500 to-amber-500 relative flex-col justify-between overflow-hidden shrink-0">
+          {/* Subtle noise/dotted pattern overlay */}
+          <div className="absolute inset-0 opacity-20 pointer-events-none" style={{ backgroundImage: 'radial-gradient(circle, white 1px, transparent 1px)', backgroundSize: '16px 16px' }} />
+          
+          {/* Vertical dashed line in the middle */}
+          <div className="absolute inset-y-0 left-1/2 -translate-x-1/2 border-l border-dashed border-white/20 pointer-events-none" />
 
-        <div className="flex flex-col lg:flex-row">
-           {/* Visual Sidebar (Hidden on mobile) */}
-           <div className="hidden lg:flex w-40 bg-gradient-to-b from-brand-blue to-brand-yellow p-8 flex-col justify-between relative overflow-hidden">
-              <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-10" />
-              <div className="relative z-10 flex flex-col gap-8">
-                 <div className="w-12 h-12 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center">
-                    <Sparkles className="w-6 h-6 text-white" />
-                 </div>
-                 <div className="space-y-4">
-                    <div className="w-1 h-8 bg-white/30 rounded-full" />
-                    <div className="w-1 h-12 bg-white rounded-full" />
-                    <div className="w-1 h-8 bg-white/30 rounded-full" />
-                 </div>
+          {/* Logo icon at top left */}
+          <div className="p-8 relative z-10 self-start">
+            <button onClick={closeModal} className="w-10 h-10 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center hover:scale-105 transition-transform shadow-md">
+              <Boxes className="w-6 h-6 text-white" />
+            </button>
+          </div>
+
+          {/* Rotated text at bottom left */}
+          <div className="relative z-10 p-8 h-40">
+            <span className="-rotate-90 origin-bottom-left absolute bottom-12 left-12 text-white/80 tracking-[0.2em] text-[10px] font-bold uppercase whitespace-nowrap block">
+              BI4K SECURE ACCESS
+            </span>
+          </div>
+        </div>
+
+        {/* Right Form Panel */}
+        <div className="w-full md:w-[65%] p-10 md:p-14 relative flex flex-col justify-between min-h-[620px]">
+          
+          {/* Close Button at absolute top right */}
+          <button 
+            onClick={closeModal}
+            className="absolute top-8 right-8 text-neutral-400 hover:text-neutral-900 dark:hover:text-white cursor-pointer transition-colors"
+            aria-label="Close"
+          >
+            <X className="w-5 h-5" />
+          </button>
+
+          <div className="w-full">
+            {/* Header Badge */}
+            <div className="bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-full px-4 py-1.5 text-[10px] font-bold tracking-wider w-fit mb-4 uppercase">
+              {isLogin ? "MEMBER ACCESS" : "NEW CREATOR"}
+            </div>
+
+            {/* Form Title & Subtitle */}
+            <h2 className="text-4xl font-extrabold text-neutral-900 dark:text-white mb-2 tracking-tight">
+              {isLogin ? "Welcome Back" : "Join BI4K"}
+            </h2>
+            <p className="text-neutral-500 dark:text-neutral-400 text-sm mb-2 font-medium">
+              {isLogin 
+                ? "Sign in to access your secure design studio." 
+                : "Create your account and start customized designs."}
+            </p>
+
+            {errorMsg && (
+              <div className="p-4 my-4 rounded-2xl bg-rose-500/10 border border-rose-500/20 text-rose-400 text-sm font-medium">
+                {errorMsg}
               </div>
-              <div className="relative z-10">
-                 <p className="text-[10px] font-black uppercase tracking-[0.3em] text-white/60 rotate-[-90deg] origin-left translate-y-[-20px] whitespace-nowrap">
-                   BI4K SECURE ACCESS
-                 </p>
+            )}
+
+            {successMsg && (
+              <div className="p-4 my-4 rounded-2xl bg-green-500/10 border border-green-500/20 text-green-400 text-sm font-medium">
+                {successMsg}
               </div>
-           </div>
+            )}
 
-           <div className="flex-1 p-12">
-              <div className="mb-10">
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-blue/10 border border-brand-blue/20 text-brand-blue text-[10px] font-black uppercase tracking-widest mb-4">
-                  {isLogin ? 'Member Access' : 'New Creator'}
-                </div>
-                <h2 className="text-4xl font-black text-foreground tracking-tighter leading-none mb-4">
-                  {isLogin ? 'Welcome Back' : 'Join BI4K'}
-                </h2>
-                <p className="text-sm text-foreground/40 font-medium">
-                  {isLogin ? 'Enter your credentials to manage your designs.' : 'Start your creative journey with AI today.'}
-                </p>
-              </div>
-
-              {errorMsg && (
-                <div className="mb-8 p-5 text-xs font-bold text-brand-yellow bg-brand-yellow/5 border border-brand-yellow/10 rounded-2xl animate-reveal">
-                  {errorMsg}
-                </div>
-              )}
-
-              {successMsg && (
-                <div className="mb-8 p-5 text-xs font-bold text-green-400 bg-green-400/5 border border-green-400/10 rounded-2xl animate-reveal">
-                  {successMsg}
-                </div>
-              )}
-
-              <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-6">
-                <div className="space-y-3">
-                  <label className="text-[10px] font-black text-foreground/30 uppercase tracking-[0.2em] ml-1">Email Address</label>
-                  <div className="relative group">
-                    <Mail className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-foreground/20 group-focus-within:text-brand-blue transition-colors" />
-                    <input 
-                      {...register("email")}
+            {/* DYNAMIC FORMS */}
+            {isLogin ? (
+              /* LOGIN FORM */
+              <form onSubmit={handleLoginSubmit(onSubmitLogin)} className="space-y-1">
+                {/* Email */}
+                <div>
+                  <label htmlFor="modal-login-email" className="text-[10px] font-bold tracking-widest uppercase text-neutral-800 dark:text-neutral-300 mb-2 mt-6 block">
+                    Email Address
+                  </label>
+                  <div className="flex items-center bg-blue-50/40 dark:bg-neutral-800/50 border border-blue-100 dark:border-neutral-700 rounded-2xl px-4 py-3.5 transition-all focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-500/20">
+                    <Mail className="text-neutral-500 w-5 h-5 mr-3 shrink-0" />
+                    <input
+                      id="modal-login-email"
+                      {...registerLogin("email")}
                       type="email"
-                      placeholder="name@studio.com"
-                      className="w-full pl-14 pr-6 py-4 bg-white text-gray-900 border border-card-border rounded-2xl focus:ring-4 focus:ring-brand-blue/10 focus:border-brand-blue outline-none transition-all font-medium text-sm placeholder-gray-400"
+                      placeholder="you@example.com"
+                      className="bg-transparent outline-none w-full text-sm text-neutral-900 dark:text-white placeholder-neutral-400 font-medium"
                     />
                   </div>
-                  {errors.email && <p className="text-[10px] text-brand-yellow mt-1.5 ml-1 font-bold uppercase tracking-widest">{errors.email.message}</p>}
+                  {loginErrors.email && <p className="text-rose-400 text-xs mt-1 font-medium">{loginErrors.email.message}</p>}
                 </div>
 
-                <div className="space-y-3">
-                  <label className="text-[10px] font-black text-foreground/30 uppercase tracking-[0.2em] ml-1">Password</label>
-                  <div className="relative group">
-                    <Lock className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-foreground/20 group-focus-within:text-brand-blue transition-colors" />
-                    <input 
-                      {...register("password")}
-                      type="password"
+                {/* Password */}
+                <div>
+                  <label htmlFor="modal-login-password" className="text-[10px] font-bold tracking-widest uppercase text-neutral-800 dark:text-neutral-300 mb-2 mt-6 block">
+                    Password
+                  </label>
+                  <div className="flex items-center bg-blue-50/40 dark:bg-neutral-800/50 border border-blue-100 dark:border-neutral-700 rounded-2xl px-4 py-3.5 transition-all focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-500/20 relative">
+                    <Lock className="text-neutral-500 w-5 h-5 mr-3 shrink-0" />
+                    <input
+                      id="modal-login-password"
+                      {...registerLogin("password")}
+                      type={showPassword ? "text" : "password"}
                       placeholder="••••••••"
-                      className="w-full pl-14 pr-6 py-4 bg-white text-gray-900 border border-card-border rounded-2xl focus:ring-4 focus:ring-brand-blue/10 focus:border-brand-blue outline-none transition-all font-medium text-sm placeholder-gray-400"
+                      className="bg-transparent outline-none w-full text-sm text-neutral-900 dark:text-white placeholder-neutral-400 font-medium pr-10"
                     />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword((v) => !v)}
+                      className="absolute right-4 text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-200 transition-colors"
+                    >
+                      {showPassword ? <EyeOff className="w-4.5 h-4.5" /> : <Eye className="w-4.5 h-4.5" />}
+                    </button>
                   </div>
-                  {errors.password && <p className="text-[10px] text-brand-yellow mt-1.5 ml-1 font-bold uppercase tracking-widest">{errors.password.message}</p>}
+                  {loginErrors.password && <p className="text-rose-400 text-xs mt-1 font-medium">{loginErrors.password.message}</p>}
                 </div>
 
-                {!isLogin && (
-                  <>
-                    <div className="space-y-3 animate-reveal">
-                      <label className="text-[10px] font-black text-foreground/30 uppercase tracking-[0.2em] ml-1">Nom complet / Full Name</label>
-                      <div className="relative group">
-                        <User className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-foreground/20 group-focus-within:text-brand-blue transition-colors" />
-                        <input 
-                          {...register("fullName")}
-                          type="text"
-                          placeholder="John Doe"
-                          className="w-full pl-14 pr-6 py-4 bg-white text-gray-900 border border-card-border rounded-2xl focus:ring-4 focus:ring-brand-blue/10 focus:border-brand-blue outline-none transition-all font-medium text-sm placeholder-gray-400"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="space-y-3 animate-reveal">
-                      <label className="text-[10px] font-black text-foreground/30 uppercase tracking-[0.2em] ml-1">Téléphone / Phone</label>
-                      <div className="relative group">
-                        <Phone className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-foreground/20 group-focus-within:text-brand-blue transition-colors" />
-                        <input 
-                          {...register("phone")}
-                          type="tel"
-                          placeholder="+212 600-000000"
-                          className="w-full pl-14 pr-6 py-4 bg-white text-gray-900 border border-card-border rounded-2xl focus:ring-4 focus:ring-brand-blue/10 focus:border-brand-blue outline-none transition-all font-medium text-sm placeholder-gray-400"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="space-y-3 animate-reveal">
-                      <label className="text-[10px] font-black text-foreground/30 uppercase tracking-[0.2em] ml-1">Adresse de livraison / Address</label>
-                      <div className="relative group">
-                        <MapPin className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-foreground/20 group-focus-within:text-brand-blue transition-colors" />
-                        <input 
-                          {...register("address")}
-                          type="text"
-                          placeholder="123 Rue de la Liberté, Casablanca"
-                          className="w-full pl-14 pr-6 py-4 bg-white text-gray-900 border border-card-border rounded-2xl focus:ring-4 focus:ring-brand-blue/10 focus:border-brand-blue outline-none transition-all font-medium text-sm placeholder-gray-400"
-                        />
-                      </div>
-                    </div>
-                  </>
-                )}
-
-                {errorMsg && (
-                  <p className="text-xs font-bold text-rose-500 bg-rose-500/10 border border-rose-500/20 rounded-xl p-4 text-center animate-reveal">
-                    {errorMsg}
-                  </p>
-                )}
-
-                <button 
+                <button
                   type="submit"
                   disabled={loading}
-                  className="w-full py-5 mt-4 rounded-2xl font-black text-xs uppercase tracking-[0.2em] text-white bg-brand-blue hover:bg-brand-blue/90 shadow-2xl shadow-brand-blue/20 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-3 group/btn"
+                  className="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold rounded-2xl py-4 mt-8 transition-all duration-300 shadow-lg shadow-blue-500/30 flex justify-center items-center gap-2 cursor-pointer disabled:opacity-50"
                 >
-                  {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : (
+                  {loading ? (
+                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  ) : (
                     <>
-                      {isLogin ? <LogIn className="w-4 h-4" /> : <UserPlus className="w-4 h-4" />}
-                      {isLogin ? 'Authorize Access' : 'Create Account'}
-                      <ArrowRight className="w-4 h-4 opacity-0 -translate-x-4 group-hover/btn:opacity-100 group-hover/btn:translate-x-0 transition-all" />
+                      <Sparkles className="w-4 h-4" />
+                      Sign In
                     </>
                   )}
                 </button>
-              </form>
 
-              <div className="mt-12 pt-8 border-t border-card-border text-center">
-                <p className="text-xs font-bold text-slate-500 uppercase tracking-widest">
-                  {isLogin ? "No account yet?" : "Already a member?"}
+                <div className="text-center mt-6">
                   <button 
-                    onClick={() => { setIsLogin(!isLogin); setErrorMsg(null); setSuccessMsg(null); }}
-                    className="ml-3 font-black text-brand-blue hover:text-brand-blue/80 transition-colors"
+                    type="button"
+                    onClick={() => {
+                      setIsLogin(false);
+                      setErrorMsg(null);
+                      setSuccessMsg(null);
+                    }}
+                    className="text-[10px] font-extrabold uppercase tracking-widest text-neutral-400 hover:text-blue-500 cursor-pointer transition-colors"
                   >
-                    {isLogin ? 'Register Hub' : 'Login Securely'}
+                    NO ACCOUNT YET? Register Hub
                   </button>
-                </p>
-              </div>
+                </div>
+              </form>
+            ) : (
+              /* SIGNUP FORM */
+              <form onSubmit={handleSignupSubmit(onSubmitSignup)} className="space-y-1">
+                {/* Full Name */}
+                <div>
+                  <label htmlFor="modal-signup-name" className="text-[10px] font-bold tracking-widest uppercase text-neutral-800 dark:text-neutral-300 mb-2 mt-6 block">
+                    Full Name
+                  </label>
+                  <div className="flex items-center bg-blue-50/40 dark:bg-neutral-800/50 border border-blue-100 dark:border-neutral-700 rounded-2xl px-4 py-3.5 transition-all focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-500/20">
+                    <User className="text-neutral-500 w-5 h-5 mr-3 shrink-0" />
+                    <input
+                      id="modal-signup-name"
+                      {...registerSignup("fullName")}
+                      type="text"
+                      placeholder="Mohamed Alami"
+                      className="bg-transparent outline-none w-full text-sm text-neutral-900 dark:text-white placeholder-neutral-400 font-medium"
+                    />
+                  </div>
+                  {signupErrors.fullName && <p className="text-rose-400 text-xs mt-1 font-medium">{signupErrors.fullName.message}</p>}
+                </div>
 
-              <div className="mt-8 flex items-center justify-center gap-2 opacity-10">
-                 <ShieldCheck className="w-4 h-4" />
-                 <span className="text-[8px] font-black uppercase tracking-[0.3em]">AES-256 Bit Encryption</span>
-              </div>
-           </div>
+                {/* Email */}
+                <div>
+                  <label htmlFor="modal-signup-email" className="text-[10px] font-bold tracking-widest uppercase text-neutral-800 dark:text-neutral-300 mb-2 mt-6 block">
+                    Email Address
+                  </label>
+                  <div className="flex items-center bg-blue-50/40 dark:bg-neutral-800/50 border border-blue-100 dark:border-neutral-700 rounded-2xl px-4 py-3.5 transition-all focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-500/20">
+                    <Mail className="text-neutral-500 w-5 h-5 mr-3 shrink-0" />
+                    <input
+                      id="modal-signup-email"
+                      {...registerSignup("email")}
+                      type="email"
+                      placeholder="you@example.com"
+                      className="bg-transparent outline-none w-full text-sm text-neutral-900 dark:text-white placeholder-neutral-400 font-medium"
+                    />
+                  </div>
+                  {signupErrors.email && <p className="text-rose-400 text-xs mt-1 font-medium">{signupErrors.email.message}</p>}
+                </div>
+
+                {/* Phone */}
+                <div>
+                  <label htmlFor="modal-signup-phone" className="text-[10px] font-bold tracking-widest uppercase text-neutral-800 dark:text-neutral-300 mb-2 mt-6 block">
+                    Phone Number
+                  </label>
+                  <div className="flex items-center bg-blue-50/40 dark:bg-neutral-800/50 border border-blue-100 dark:border-neutral-700 rounded-2xl px-4 py-3.5 transition-all focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-500/20">
+                    <Phone className="text-neutral-500 w-5 h-5 mr-3 shrink-0" />
+                    <input
+                      id="modal-signup-phone"
+                      {...registerSignup("phone")}
+                      type="tel"
+                      placeholder="+212 600-000000"
+                      className="bg-transparent outline-none w-full text-sm text-neutral-900 dark:text-white placeholder-neutral-400 font-medium"
+                    />
+                  </div>
+                  {signupErrors.phone && <p className="text-rose-400 text-xs mt-1 font-medium">{signupErrors.phone.message}</p>}
+                </div>
+
+                {/* Address */}
+                <div>
+                  <label htmlFor="modal-signup-address" className="text-[10px] font-bold tracking-widest uppercase text-neutral-800 dark:text-neutral-300 mb-2 mt-6 block">
+                    Shipping Address
+                  </label>
+                  <div className="flex items-center bg-blue-50/40 dark:bg-neutral-800/50 border border-blue-100 dark:border-neutral-700 rounded-2xl px-4 py-3.5 transition-all focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-500/20">
+                    <MapPin className="text-neutral-500 w-5 h-5 mr-3 shrink-0" />
+                    <input
+                      id="modal-signup-address"
+                      {...registerSignup("address")}
+                      type="text"
+                      placeholder="25, Bd Anfa, Casablanca"
+                      className="bg-transparent outline-none w-full text-sm text-neutral-900 dark:text-white placeholder-neutral-400 font-medium"
+                    />
+                  </div>
+                  {signupErrors.address && <p className="text-rose-400 text-xs mt-1 font-medium">{signupErrors.address.message}</p>}
+                </div>
+
+                {/* Password */}
+                <div>
+                  <label htmlFor="modal-signup-password" className="text-[10px] font-bold tracking-widest uppercase text-neutral-800 dark:text-neutral-300 mb-2 mt-6 block">
+                    Password
+                  </label>
+                  <div className="flex items-center bg-blue-50/40 dark:bg-neutral-800/50 border border-blue-100 dark:border-neutral-700 rounded-2xl px-4 py-3.5 transition-all focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-500/20 relative">
+                    <Lock className="text-neutral-500 w-5 h-5 mr-3 shrink-0" />
+                    <input
+                      id="modal-signup-password"
+                      {...registerSignup("password")}
+                      type={showPassword ? "text" : "password"}
+                      placeholder="••••••••"
+                      className="bg-transparent outline-none w-full text-sm text-neutral-900 dark:text-white placeholder-neutral-400 font-medium pr-10"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword((v) => !v)}
+                      className="absolute right-4 text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-200 transition-colors"
+                    >
+                      {showPassword ? <EyeOff className="w-4.5 h-4.5" /> : <Eye className="w-4.5 h-4.5" />}
+                    </button>
+                  </div>
+                  {signupErrors.password && <p className="text-rose-400 text-xs mt-1 font-medium">{signupErrors.password.message}</p>}
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold rounded-2xl py-4 mt-8 transition-all duration-300 shadow-lg shadow-blue-500/30 flex justify-center items-center gap-2 cursor-pointer disabled:opacity-50"
+                >
+                  {loading ? (
+                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  ) : (
+                    <>
+                      <Sparkles className="w-4 h-4" />
+                      Create Account
+                    </>
+                  )}
+                </button>
+
+                <div className="text-center mt-6">
+                  <button 
+                    type="button"
+                    onClick={() => {
+                      setIsLogin(true);
+                      setErrorMsg(null);
+                      setSuccessMsg(null);
+                    }}
+                    className="text-[10px] font-extrabold uppercase tracking-widest text-neutral-400 hover:text-blue-500 cursor-pointer transition-colors"
+                  >
+                    ALREADY A MEMBER? Login Securely
+                  </button>
+                </div>
+              </form>
+            )}
+          </div>
+
+          {/* Security Footer */}
+          <div className="text-neutral-300 dark:text-neutral-600 text-[9px] uppercase tracking-widest flex items-center justify-center gap-1 mt-auto pt-8 border-t border-neutral-100 dark:border-neutral-800">
+            <ShieldCheck className="w-3.5 h-3.5 text-neutral-300 dark:text-neutral-600" />
+            AES-256 BIT ENCRYPTION
+          </div>
         </div>
       </div>
     </div>

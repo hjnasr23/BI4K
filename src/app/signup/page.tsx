@@ -39,7 +39,7 @@ export default function SignupPage() {
 
   const onSubmit = async (data: SignupFormValues) => {
     setAuthError(null);
-    const { error, requiresConfirmation } = await signUp(data.email, data.password, data.name);
+    const { error, requiresConfirmation } = await signUp(data.email, data.password, data.name, '', '');
     if (error) {
       let message = error;
       if (error === 'User already registered') {
