@@ -20,6 +20,7 @@ export interface CartItem {
   image_url: string; // Clean product support image (e.g., Hoodie photo from DB)
   design_url?: string | null; // Isolated transparent custom design URL
   coordinates?: DesignCoordinates | null; // Exact placement metadata for industrial printing
+  mockup_url?: string; // Full composite mockup garment + design overlay
   // Legacy fields kept for backward compatibility with existing orders in DB
   mockupUrl?: string;
   finalMockup?: string;

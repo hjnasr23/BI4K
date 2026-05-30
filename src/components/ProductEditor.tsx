@@ -549,7 +549,8 @@ export default function TShirtEditor() {
         design_url: designUrl,
         coordinates: finalCoordinates,
         mockupUrl: mockupUrl,
-        finalMockup: designUrl
+        finalMockup: designUrl,
+        mockup_url: savedMockupUrl || mockupUrl
       });
 
       addLog("Product added to cart!", "success");

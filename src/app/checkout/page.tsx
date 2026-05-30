@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useCartStore } from "@/lib/store/cartStore";
-import { supabase } from "@/lib/supabase";
+import { createClient } from "@/lib/supabase/client";
 import { motion, AnimatePresence } from "motion/react";
 import {
   CheckCircle2,
@@ -32,11 +32,15 @@ export default function CheckoutPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
 
+  const supabase = createClient();
+
   // Form State
-  const [fullName, setFullName] = useState("");
-  const [email, setEmail] = useState("");
-  const [phone, setPhone] = useState("");
-  const [address, setAddress] = useState("");
+  const [formData, setFormData] = useState({
+    fullName: "",
+    email: "",
+    phone: "",
+    address: ""
+  });
 
   // Payment Method State
   const [paymentMethod, setPaymentMethod] = useState<'livraison' | 'carte' | 'rib'>('livraison');
@@ -46,62 +50,39 @@ export default function CheckoutPage() {
     setMounted(true);
   }, []);
 
-  // Fetch User Profile on Mount
+  // Fetch user data on mount
   useEffect(() => {
-    async function loadUserProfile() {
-      try {
-        const { data: { session } } = await supabase.auth.getSession();
-        
-        if (session) {
-          setEmail(session.user.email || "");
-          
-          // Query the profiles table for the current user
-          const { data, error } = await supabase
-            .from('profiles')
-            .select('full_name, phone, address')
-            .eq('id', session.user.id)
-            .single();
-            
-          if (data && !error) {
-            setFullName(data.full_name || '');
-            setPhone(data.phone || '');
-            setAddress(data.address || '');
-          } else {
-            // Robust fallback if column 'address' doesn't exist or query failed, try 'shipping_address' or user metadata
-            const { data: profileData } = await supabase
-              .from('profiles')
-              .select('*')
-              .eq('id', session.user.id)
-              .maybeSingle();
+    async function fetchUserData() {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user) return;
 
-            if (profileData) {
-              setFullName(profileData.full_name || '');
-              setPhone(profileData.phone || '');
-              const rawAddr = profileData.address || profileData.shipping_address || '';
-              if (rawAddr && typeof rawAddr === 'object') {
-                let text = (rawAddr as any).street || (rawAddr as any).address || '';
-                if ((rawAddr as any).city) {
-                  text += (text ? ", " : "") + (rawAddr as any).city;
-                }
-                setAddress(text);
-              } else {
-                setAddress(String(rawAddr));
-              }
-            } else {
-              setFullName(session.user.user_metadata?.full_name || '');
-              setPhone(session.user.phone || '');
-            }
-          }
-        }
-      } catch (err) {
-        console.error("Error loading user profile on mount:", err);
-      }
+      const { data: profile, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', session.user.id)
+        .single();
+         
+      if (error) console.error("Profile fetch error in checkout:", error);
+
+      setFormData(prev => ({
+        ...prev,
+        fullName: profile?.full_name || '',
+        email: session.user.email || '',
+        phone: profile?.phone || '',
+        address: profile?.address || ''
+      }));
     }
-    
-    if (mounted) {
-      loadUserProfile();
-    }
-  }, [mounted]);
+    fetchUserData();
+  }, []);
+
+  // Handle Input Changes
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
 
   // Calculate totals
   const subtotal = items.reduce((acc, item) => acc + (item.price * item.quantity), 0);
@@ -113,8 +94,6 @@ export default function CheckoutPage() {
       router.push("/cart");
     }
   }, [mounted, items, isSuccess, router]);
-
-
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -154,10 +133,10 @@ export default function CheckoutPage() {
       const userId = session?.user?.id || null;
 
       const orderPayload: any = {
-        full_name: fullName,
-        email: email,
-        phone: phone,
-        shipping_address: address,
+        full_name: formData.fullName,
+        email: formData.email,
+        phone: formData.phone,
+        shipping_address: formData.address,
         total_amount: totalAmount,
         order_items: items, // JSONB column
         status: 'pending',
@@ -254,8 +233,8 @@ export default function CheckoutPage() {
                           type="text"
                           name="fullName"
                           required
-                          value={fullName}
-                          onChange={(e) => setFullName(e.target.value)}
+                          value={formData.fullName}
+                          onChange={(e) => setFormData({...formData, fullName: e.target.value})}
                           className="w-full bg-black/50 border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-white font-medium outline-none focus:border-brand-blue/50 transition-colors"
                           placeholder="Jean Dupont"
                         />
@@ -271,8 +250,8 @@ export default function CheckoutPage() {
                             type="email"
                             name="email"
                             required
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
+                            value={formData.email}
+                            onChange={(e) => setFormData({...formData, email: e.target.value})}
                             className="w-full bg-black/50 border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-white font-medium outline-none focus:border-brand-blue/50 transition-colors"
                             placeholder="jean@example.com"
                           />
@@ -286,8 +265,8 @@ export default function CheckoutPage() {
                             type="tel"
                             name="phone"
                             required
-                            value={phone}
-                            onChange={(e) => setPhone(e.target.value)}
+                            value={formData.phone}
+                            onChange={(e) => setFormData({...formData, phone: e.target.value})}
                             className="w-full bg-black/50 border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-white font-medium outline-none focus:border-brand-blue/50 transition-colors"
                             placeholder="+212 6 00 00 00 00"
                           />
@@ -303,8 +282,8 @@ export default function CheckoutPage() {
                           name="address"
                           required
                           rows={3}
-                          value={address}
-                          onChange={(e) => setAddress(e.target.value)}
+                          value={formData.address}
+                          onChange={(e) => setFormData({...formData, address: e.target.value})}
                           className="w-full bg-black/50 border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-white font-medium outline-none resize-none focus:border-brand-blue/50 transition-colors"
                           placeholder="123 Rue de la Liberté, Casablanca"
                         />
