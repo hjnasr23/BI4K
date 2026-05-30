@@ -7,7 +7,7 @@ import { useApp } from "@/lib/store";
 import { translations } from "@/lib/translations";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
-import { UploadCloud, Loader2, Sparkles, Search, Filter, Boxes } from "lucide-react";
+import { Loader2, Sparkles, Search, Filter, Boxes, ArrowLeft } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 
 interface Product {
@@ -119,10 +119,10 @@ const ProductCard = ({ product, lang }: { product: Product; lang: string }) => {
           </div>
         </Link>
         
-        <div className="p-8 flex flex-col justify-between flex-grow">
+        <div className="p-6 flex flex-col justify-between flex-grow">
           <div className="flex justify-between items-start gap-4">
             <Link href={`/products/${product.slug}`} className="hover:text-brand-yellow transition-colors flex-1">
-              <h3 className="font-black text-lg leading-tight uppercase tracking-tighter text-slate-100 group-hover:text-brand-yellow transition-colors">
+              <h3 className="font-extrabold text-base leading-tight uppercase tracking-tight text-neutral-100 group-hover:text-brand-yellow transition-colors line-clamp-1">
                 {product.name}
               </h3>
             </Link>
@@ -130,22 +130,23 @@ const ProductCard = ({ product, lang }: { product: Product; lang: string }) => {
             {/* Pricing logic (MAD) */}
             <div className="text-right flex-shrink-0">
               {isSaleActive ? (
-                <>
-                  <p className="text-xl font-black text-green-400">{product.sale_price} MAD</p>
-                  <p className="text-xs font-bold text-gray-500 line-through mt-0.5">{product.price} MAD</p>
-                </>
+                <div className="flex flex-col items-end">
+                  <span className="text-sm font-black text-green-400">{product.sale_price} MAD</span>
+                  <span className="text-[10px] font-bold text-neutral-500 line-through mt-0.5">{product.price} MAD</span>
+                </div>
               ) : (
-                <p className="text-xl font-black text-brand-yellow">{product.price} MAD</p>
+                <span className="text-sm font-black text-brand-yellow">{product.price} MAD</span>
               )}
             </div>
           </div>
           
-          {/* View Details Link */}
-          <Link href={`/products/${product.slug}`} className="mt-6 pt-6 border-t border-white/5 flex items-center justify-between text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 hover:text-brand-yellow transition-all">
-            <span>{lang === 'fr' ? 'Voir les détails' : 'View details'}</span>
-            <span className="w-5 h-5 rounded-full bg-white/5 group-hover:bg-brand-blue group-hover:text-white flex items-center justify-center transition-all group-hover:translate-x-1">
-              &rarr;
-            </span>
+          {/* Prominent CTA button */}
+          <Link 
+            href={`/products/${product.slug}`} 
+            className="mt-5 w-full py-3.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-center text-xs font-black uppercase tracking-widest transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-blue-500/20 flex items-center justify-center gap-2 group-hover:shadow-blue-500/30"
+          >
+            <Sparkles className="w-3.5 h-3.5" />
+            {lang === 'fr' ? 'PERSONNALISER' : 'CUSTOMIZE'}
           </Link>
         </div>
       </div>
@@ -274,10 +275,8 @@ export default function CategoryDetailsPage() {
       <main className="container mx-auto px-4 pt-32 pb-16 flex-grow relative z-10">
         {/* Header Section */}
         <div className="mb-12 animate-reveal">
-           <Link href="/categories" className="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.4em] text-brand-blue/60 hover:text-brand-yellow transition-colors mb-6 group">
-             <div className="w-5 h-5 rounded-full bg-brand-blue/10 flex items-center justify-center group-hover:-translate-x-1 transition-transform">
-               &larr;
-             </div>
+           <Link href="/categories" className="inline-flex items-center gap-2 text-xs font-black uppercase tracking-widest text-neutral-400 hover:text-white transition-colors mb-8 group">
+             <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
              {lang === 'fr' ? 'Retour aux catégories' : 'Back to Categories'}
            </Link>
            
@@ -287,11 +286,6 @@ export default function CategoryDetailsPage() {
                    {categoryName || resolvedSlug.replace('-', ' ')}
                  </h1>
               </div>
-              
-              <Link href="/upload" className="inline-flex items-center gap-3 px-8 py-4 rounded-2xl bg-white/5 border border-white/10 backdrop-blur-md font-black text-xs uppercase tracking-[0.2em] hover:bg-brand-blue hover:text-white hover:border-brand-blue hover:scale-[1.05] active:scale-[0.95] transition-all group shadow-xl shadow-black/20">
-                <UploadCloud className="w-5 h-5 group-hover:animate-bounce" />
-                {lang === 'fr' ? 'Upload Design' : 'Upload Design'}
-              </Link>
            </div>
         </div>
 
@@ -374,46 +368,37 @@ export default function CategoryDetailsPage() {
           </aside>
 
           {/* Right Content Area */}
-          <div className="flex-1">
-            {/* Filter & Search Bar */}
-            <div className="glass rounded-[2rem] p-4 mb-12 flex flex-col xl:flex-row gap-4 items-center justify-between bg-white/5 border border-white/10 backdrop-blur-md">
-              <div className="relative w-full xl:w-96 group">
-                <div className="absolute left-5 top-1/2 -translate-y-1/2 text-foreground/30 group-focus-within:text-brand-blue transition-colors">
-                  <Search className="w-5 h-5" />
+          <div className="flex-grow">
+            {/* Sleek, standalone Price and A-Z sorting options container aligned to the top right */}
+            <div className="flex justify-between items-center mb-6">
+              <span className="text-xs font-black uppercase tracking-widest text-neutral-500">
+                {filteredProducts.length} {lang === 'fr' ? 'Modèles' : 'Models'}
+              </span>
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] font-black uppercase tracking-widest text-neutral-500 mr-1">{lang === 'fr' ? "Trier par :" : "Sort by :"}</span>
+                <div className="flex bg-neutral-100 dark:bg-white/5 border border-neutral-200/50 dark:border-white/5 rounded-xl p-1">
+                  <button
+                    type="button"
+                    onClick={() => setSortBy('name')}
+                    className={`px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${sortBy === 'name' ? 'bg-white dark:bg-neutral-800 shadow text-neutral-900 dark:text-white' : 'text-neutral-400 hover:text-white'}`}
+                  >
+                    A-Z
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setSortBy('price-asc')}
+                    className={`px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${sortBy === 'price-asc' ? 'bg-white dark:bg-neutral-800 shadow text-neutral-900 dark:text-white' : 'text-neutral-400 hover:text-white'}`}
+                  >
+                    {lang === 'fr' ? 'Prix ↑' : 'Price ↑'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setSortBy('price-desc')}
+                    className={`px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${sortBy === 'price-desc' ? 'bg-white dark:bg-neutral-800 shadow text-neutral-900 dark:text-white' : 'text-neutral-400 hover:text-white'}`}
+                  >
+                    {lang === 'fr' ? 'Prix ↓' : 'Price ↓'}
+                  </button>
                 </div>
-                <input 
-                  type="text" 
-                  placeholder={lang === 'fr' ? "Rechercher un modèle..." : "Search mockups..."}
-                  className="w-full pl-14 pr-6 py-4 bg-background/50 border border-card-border rounded-2xl focus:ring-4 focus:ring-brand-blue/10 focus:border-brand-blue outline-none transition-all font-medium text-sm text-slate-100 placeholder:text-slate-600"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
-              </div>
-
-              <div className="flex items-center gap-4 w-full xl:w-auto overflow-x-auto pb-2 xl:pb-0">
-                  <div className="flex items-center gap-2 px-4 py-2 bg-background/50 border border-card-border rounded-xl flex-shrink-0">
-                    <Filter className="w-4 h-4 text-brand-yellow" />
-                    <span className="text-[10px] font-black uppercase tracking-widest text-foreground/40">{lang === 'fr' ? "Trier" : "Sort"}</span>
-                  </div>
-                  <div className="flex gap-2 bg-background/50 border border-card-border p-1.5 rounded-2xl">
-                    {[
-                      { id: 'name', label: lang === 'fr' ? 'Nom' : 'Name' },
-                      { id: 'price-asc', label: lang === 'fr' ? 'Prix ↑' : 'Price ↑' },
-                      { id: 'price-desc', label: lang === 'fr' ? 'Prix ↓' : 'Price ↓' },
-                    ].map((option) => (
-                      <button
-                        key={option.id}
-                        onClick={() => setSortBy(option.id as any)}
-                        className={`px-4 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${
-                          sortBy === option.id 
-                          ? 'bg-brand-blue text-white shadow-lg shadow-brand-blue/20' 
-                          : 'hover:bg-card-bg text-foreground/50'
-                        }`}
-                      >
-                        {option.label}
-                      </button>
-                    ))}
-                  </div>
               </div>
             </div>
 
