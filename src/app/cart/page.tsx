@@ -62,9 +62,18 @@ export default function CartPage() {
             <div className="lg:col-span-2 space-y-4">
               {items.map(item => (
                 <div key={item.cartItemId} className="glass p-6 rounded-[2rem] border border-white/5 flex gap-6 relative bg-[#111116] shadow-xl hover:border-white/10 transition-colors">
-                  {/* Thumbnail — Clean product support image only */}
-                  <div className="relative w-24 h-24 sm:w-32 sm:h-32 rounded-xl overflow-hidden bg-white/5 border border-white/10 shrink-0">
-                     <img src={item.image_url || item.mockupUrl || ''} alt={item.name} className="absolute inset-0 w-full h-full object-cover" />
+                  {/* Thumbnail — Clean product support image with design overlay or composite mockup */}
+                  <div className="relative w-24 h-24 sm:w-32 sm:h-32 rounded-xl overflow-hidden bg-white/5 border border-white/10 shrink-0 flex items-center justify-center">
+                    {item.mockup_url ? (
+                      <img src={item.mockup_url} alt={item.name} className="absolute inset-0 w-full h-full object-contain" />
+                    ) : (
+                      <>
+                        <img src={item.image_url || item.mockupUrl || ''} alt={item.name} className="absolute inset-0 w-full h-full object-cover z-0 opacity-60" />
+                        {item.design_url && (
+                          <img src={item.design_url} alt="" className="absolute inset-0 w-full h-full object-contain z-10 p-2" />
+                        )}
+                      </>
+                    )}
                   </div>
 
                   {/* Details */}
@@ -95,7 +104,7 @@ export default function CartPage() {
                       </div>
 
                       <div className="text-right flex flex-col items-end">
-                        <span className="text-lg font-black italic text-brand-yellow">{item.price * item.quantity} MAD</span>
+                        <span className="text-lg font-black italic text-brand-yellow">{Number(item.price * item.quantity).toFixed(2)} MAD</span>
                         <button
                           onClick={() => removeFromCart(item.cartItemId)}
                           className="text-[10px] uppercase font-black tracking-widest text-rose-400 hover:text-rose-300 mt-2 flex items-center gap-1 transition-colors"
@@ -117,17 +126,17 @@ export default function CartPage() {
                 <div className="space-y-4 text-sm font-medium text-slate-400 mb-8 border-b border-white/10 pb-6">
                   <div className="flex justify-between">
                     <span>Sous-total / Subtotal</span>
-                    <span className="text-white font-bold">{subtotal} MAD</span>
+                    <span className="text-white font-bold">{Number(subtotal).toFixed(2)} MAD</span>
                   </div>
                   <div className="flex justify-between">
                     <span>Taxe / Tax</span>
-                    <span className="text-white font-bold">{tax} MAD</span>
+                    <span className="text-white font-bold">{Number(tax).toFixed(2)} MAD</span>
                   </div>
                 </div>
 
                 <div className="flex justify-between items-end mb-6">
                   <span className="text-sm font-black uppercase tracking-widest text-foreground/50">Total</span>
-                  <span className="text-4xl font-black italic text-brand-yellow">{total} MAD</span>
+                  <span className="text-4xl font-black italic text-brand-yellow">{Number(total).toFixed(2)} MAD</span>
                 </div>
 
                 <div className="mb-8 p-4 rounded-2xl bg-white/5 border border-white/5 text-center">

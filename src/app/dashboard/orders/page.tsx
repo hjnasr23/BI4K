@@ -26,6 +26,9 @@ interface OrderItem {
   quantity: number;
   mockupUrl?: string;
   finalMockup?: string;
+  mockup_url?: string;
+  design_url?: string;
+  image_url?: string;
 }
 
 interface Order {
@@ -366,12 +369,21 @@ export default function OrdersPage() {
                 {parseOrderItems(selectedOrder.order_items).map((item, idx) => (
                   <div key={idx} className="flex gap-4 items-center bg-neutral-50 dark:bg-white/5 border border-neutral-200/50 dark:border-white/5 p-3 rounded-2xl">
                     <div className="w-12 h-12 rounded-xl overflow-hidden bg-neutral-100 dark:bg-black/50 relative border border-neutral-200/50 dark:border-white/5 shrink-0 flex items-center justify-center text-neutral-400">
-                      {item.mockup_url || item.image_url || item.mockupUrl || item.finalMockup ? (
+                      {item.mockup_url ? (
                         <img 
-                          src={item.mockup_url || item.image_url || item.mockupUrl || item.finalMockup} 
+                          src={item.mockup_url} 
                           alt={item.name} 
                           className="absolute inset-0 w-full h-full object-contain z-10" 
                         />
+                      ) : (item.mockupUrl || item.image_url || item.finalMockup || item.design_url) ? (
+                        <>
+                          {(item.mockupUrl || item.image_url) && (
+                            <img src={item.mockupUrl || item.image_url} alt="" className="absolute inset-0 w-full h-full object-cover z-0 opacity-40" />
+                          )}
+                          {(item.finalMockup || item.design_url) && (
+                            <img src={item.finalMockup || item.design_url} alt="" className="absolute inset-0 w-full h-full object-contain z-10" />
+                          )}
+                        </>
                       ) : (
                         <ShoppingBag className="w-5 h-5 text-neutral-400" />
                       )}

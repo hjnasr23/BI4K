@@ -408,10 +408,16 @@ export default function CheckoutPage() {
                   <div className="space-y-6 mb-8 max-h-[300px] overflow-y-auto pr-2 scrollbar-thin">
                     {items.map(item => (
                       <div key={item.cartItemId} className="flex gap-4 items-center">
-                        <div className="relative w-16 h-16 rounded-xl overflow-hidden bg-white/5 border border-white/10 shrink-0">
-                          <img src={item.mockupUrl} alt="" className="absolute inset-0 w-full h-full object-cover z-0 opacity-50" />
-                          {item.finalMockup && (
-                            <img src={item.finalMockup} alt="" className="absolute inset-0 w-full h-full object-contain z-10" />
+                        <div className="relative w-16 h-16 rounded-xl overflow-hidden bg-white/5 border border-white/10 shrink-0 flex items-center justify-center">
+                          {item.mockup_url ? (
+                            <img src={item.mockup_url} alt="" className="absolute inset-0 w-full h-full object-contain z-10" />
+                          ) : (
+                            <>
+                              <img src={item.mockupUrl || item.image_url} alt="" className="absolute inset-0 w-full h-full object-cover z-0 opacity-50" />
+                              {item.finalMockup && (
+                                <img src={item.finalMockup} alt="" className="absolute inset-0 w-full h-full object-contain z-10" />
+                              )}
+                            </>
                           )}
                           <div className="absolute -top-1 -right-1 w-5 h-5 bg-brand-blue text-white rounded-full flex items-center justify-center text-[10px] font-black z-20">
                             {item.quantity}
@@ -422,7 +428,7 @@ export default function CheckoutPage() {
                           <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Taille: {item.size}</p>
                         </div>
                         <div className="text-sm font-black italic text-brand-yellow">
-                          {item.price * item.quantity} MAD
+                          {Number(item.price * item.quantity).toFixed(2)} MAD
                         </div>
                       </div>
                     ))}
@@ -431,7 +437,7 @@ export default function CheckoutPage() {
                   <div className="space-y-4 text-sm font-medium text-slate-400 mb-6 border-t border-white/10 pt-6">
                     <div className="flex justify-between">
                       <span>Sous-total</span>
-                      <span className="text-white">{subtotal} MAD</span>
+                      <span className="text-white">{Number(subtotal).toFixed(2)} MAD</span>
                     </div>
                     <div className="flex justify-between">
                       <span>Livraison</span>
@@ -441,7 +447,7 @@ export default function CheckoutPage() {
 
                   <div className="flex justify-between items-end border-t border-white/10 pt-6 mt-6">
                     <span className="text-sm font-black uppercase tracking-widest text-slate-500">Total à payer</span>
-                    <span className="text-4xl font-black italic text-brand-yellow">{totalAmount} MAD</span>
+                    <span className="text-4xl font-black italic text-brand-yellow">{Number(totalAmount).toFixed(2)} MAD</span>
                   </div>
                 </div>
               </div>

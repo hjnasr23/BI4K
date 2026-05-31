@@ -290,8 +290,8 @@ export default function AdminOrdersPage() {
                         <div className="flex flex-col gap-3">
                           {order.order_items.map((item, idx) => (
                             <div key={idx} className="flex gap-3 items-center">
-                              <div className="relative w-12 h-12 rounded-lg bg-black/50 overflow-hidden shrink-0 border border-white/10">
-                                <img src={item.image_url || item.mockupUrl || ''} alt="" className="absolute inset-0 w-full h-full object-cover" />
+                              <div className="relative w-12 h-12 rounded-lg bg-black/50 overflow-hidden shrink-0 border border-white/10 flex items-center justify-center">
+                                <img src={item.mockup_url || item.image_url || item.mockupUrl || ''} alt="" className="absolute inset-0 w-full h-full object-contain" />
                                 <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-emerald-500 text-white rounded-tl-lg flex items-center justify-center text-[8px] font-black z-20">
                                   x{item.quantity}
                                 </div>
@@ -307,7 +307,7 @@ export default function AdminOrdersPage() {
 
                       {/* Amount */}
                       <td className="py-5 px-6 text-right align-top">
-                        <span className="text-sm font-black italic text-emerald-400">{order.total_amount} MAD</span>
+                        <span className="text-sm font-black italic text-emerald-400">{Number(order.total_amount).toFixed(2)} MAD</span>
                         <span className="block text-[10px] font-bold uppercase tracking-widest text-slate-500 mt-1">{order.payment_method}</span>
                       </td>
 
@@ -383,7 +383,7 @@ export default function AdminOrdersPage() {
                                     const hasDesign = !!item.design_url || !!item.finalMockup;
                                     const hasCoords = !!item.coordinates;
                                     const designSrc = item.design_url || item.finalMockup || null;
-                                    const supportSrc = item.image_url || item.mockupUrl || '';
+                                    const supportSrc = item.mockupUrl || item.image_url || '';
 
                                     return (
                                       <div key={idx} className="bg-zinc-900/50 border border-white/5 rounded-2xl p-5">
@@ -399,21 +399,34 @@ export default function AdminOrdersPage() {
                                               Taille: {item.size} · Qté: {item.quantity}
                                             </span>
                                           </div>
-                                          <span className="text-xs font-black italic text-emerald-400">{item.price * item.quantity} MAD</span>
+                                          <span className="text-xs font-black italic text-emerald-400">{Number(item.price * item.quantity).toFixed(2)} MAD</span>
                                         </div>
 
                                         {/* Split Preview: Support + Design */}
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                                           
-                                          {/* Support Image */}
+                                          {/* Mockup de Production */}
                                           <div className="space-y-2">
                                             <div className="flex items-center gap-1.5">
                                               <ImageIcon className="w-3 h-3 text-blue-400" />
-                                              <span className="text-[9px] font-black uppercase tracking-widest text-blue-400">Support (Produit Vierge)</span>
+                                              <span className="text-[9px] font-black uppercase tracking-widest text-blue-400">Mockup de Production</span>
                                             </div>
                                             <div className="relative aspect-square max-h-[200px] rounded-xl overflow-hidden bg-black/50 border border-white/10 flex items-center justify-center">
                                               {supportSrc ? (
-                                                <img src={supportSrc} alt="Support produit" className="w-full h-full object-contain" />
+                                                <>
+                                                  <img src={supportSrc} alt="Support produit" className="w-full h-full object-contain z-0" />
+                                                  {hasCoords && item.coordinates && designSrc && (
+                                                    <div style={{
+                                                      position: 'absolute',
+                                                      left: `${(item.coordinates.x / (item.coordinates.canvasWidth || 550)) * 100}%`,
+                                                      top: `${(item.coordinates.y / (item.coordinates.canvasHeight || 688)) * 100}%`,
+                                                      width: `${(item.coordinates.width / (item.coordinates.canvasWidth || 550)) * 100}%`,
+                                                      height: `${(item.coordinates.height / (item.coordinates.canvasHeight || 688)) * 100}%`
+                                                    }} className="pointer-events-none z-10">
+                                                      <img src={designSrc} alt="Design Overlay" className="w-full h-full object-contain" />
+                                                    </div>
+                                                  )}
+                                                </>
                                               ) : (
                                                 <span className="text-[9px] text-slate-500 font-bold uppercase tracking-widest">Aucune image</span>
                                               )}

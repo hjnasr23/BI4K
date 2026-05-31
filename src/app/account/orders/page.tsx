@@ -25,6 +25,9 @@ interface OrderItem {
   quantity: number;
   mockupUrl?: string;
   finalMockup?: string;
+  mockup_url?: string;
+  design_url?: string;
+  image_url?: string;
 }
 
 interface Order {
@@ -68,7 +71,22 @@ export default function OrderHistoryPage() {
         if (fetchErr) throw fetchErr;
 
         if (mounted) {
-          setOrders(data || []);
+          // Parse order_items if they are stored as stringified JSON
+          const formattedOrders = (data || []).map((order: any) => {
+            let parsedItems: OrderItem[] = [];
+            try {
+              parsedItems = typeof order.order_items === 'string' 
+                ? JSON.parse(order.order_items) 
+                : (order.order_items || []);
+            } catch (e) {
+              console.error("Error parsing order_items:", e);
+            }
+            return {
+              ...order,
+              order_items: parsedItems
+            };
+          });
+          setOrders(formattedOrders);
         }
       } catch (err: any) {
         console.error('Error loading orders:', err);
@@ -129,7 +147,7 @@ export default function OrderHistoryPage() {
     <div className="min-h-screen flex flex-col bg-[#08080a] text-foreground">
       <Navbar />
 
-      <main className="flex-1 container mx-auto px-4 pt-32 pb-20 max-w-5xl relative">
+      <main className="flex-grow container mx-auto px-4 pt-32 pb-20 max-w-5xl relative z-10">
         {/* Decorative Background Blob */}
         <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-96 h-96 bg-brand-blue/10 rounded-full blur-[100px] pointer-events-none" />
 
@@ -188,50 +206,60 @@ export default function OrderHistoryPage() {
             </div>
           ) : (
             <div className="flex flex-col gap-4">
-              {orders.map((order) => (
-                <div 
-                  key={order.id}
-                  onClick={() => setSelectedOrder(order)}
-                  className="glass p-6 rounded-[2rem] border border-white/5 hover:border-brand-blue/20 bg-[#111116]/60 hover:bg-[#111116]/80 transition-all shadow-xl cursor-pointer flex flex-col md:flex-row md:items-center justify-between gap-6 group"
-                >
-                  <div className="flex items-start gap-4">
-                    <div className="w-12 h-12 rounded-xl bg-gradient-to-tr from-brand-blue/10 to-brand-yellow/10 border border-brand-blue/20 flex items-center justify-center text-brand-blue group-hover:scale-105 transition-transform">
-                      <Clipboard className="w-5 h-5" />
+              {orders.map((order) => {
+                const totalItems = order.order_items?.reduce((sum, item) => sum + item.quantity, 0) || 0;
+                const firstItem = order.order_items?.[0];
+                const thumbnail = firstItem?.mockup_url || firstItem?.image_url || firstItem?.mockupUrl || '';
+
+                return (
+                  <div 
+                    key={order.id} 
+                    onClick={() => setSelectedOrder(order)}
+                    className="glass p-6 rounded-[2rem] border border-white/5 hover:border-brand-blue/20 bg-[#111116]/60 hover:bg-[#111116]/80 transition-all shadow-xl cursor-pointer flex flex-col md:flex-row md:items-center justify-between gap-6 group"
+                  >
+                    <div className="flex items-start gap-4">
+                      <div className="w-12 h-12 rounded-xl bg-gradient-to-tr from-brand-blue/10 to-brand-yellow/10 border border-brand-blue/20 overflow-hidden flex items-center justify-center text-brand-blue group-hover:scale-105 transition-transform relative shrink-0">
+                        {thumbnail ? (
+                          <img src={thumbnail} alt="" className="absolute inset-0 w-full h-full object-cover" />
+                        ) : (
+                          <Clipboard className="w-5 h-5" />
+                        )}
+                      </div>
+                      <div>
+                        <h3 className="font-black uppercase tracking-tighter text-white">
+                          Order #{order.id.slice(0, 8).toUpperCase()}
+                        </h3>
+                        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-1 text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+                          <span className="flex items-center gap-1.5"><Calendar className="w-3.5 h-3.5 text-brand-blue" /> {formatDate(order.created_at)}</span>
+                          <span className="flex items-center gap-1.5"><CreditCard className="w-3.5 h-3.5 text-brand-yellow" /> {order.payment_method}</span>
+                        </div>
+                      </div>
                     </div>
-                    <div>
-                      <h3 className="font-black uppercase tracking-tighter text-white">
-                        Order #{order.id.slice(0, 8).toUpperCase()}
-                      </h3>
-                      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-1 text-[10px] font-bold text-slate-500 uppercase tracking-widest">
-                        <span className="flex items-center gap-1.5"><Calendar className="w-3.5 h-3.5 text-brand-blue" /> {formatDate(order.created_at)}</span>
-                        <span className="flex items-center gap-1.5"><CreditCard className="w-3.5 h-3.5 text-brand-yellow" /> {order.payment_method}</span>
+
+                    <div className="flex items-center justify-between md:justify-end gap-6 border-t md:border-t-0 border-white/5 pt-4 md:pt-0">
+                      <div className="text-left md:text-right">
+                        <span className="block text-[8px] font-black uppercase tracking-widest text-slate-500">
+                          {lang === 'fr' ? 'Montant Total' : 'Total Amount'}
+                        </span>
+                        <span className="text-xl font-black italic text-brand-yellow mt-0.5 block">
+                          {order.total_amount} MAD
+                        </span>
+                      </div>
+
+                      <div className="flex items-center gap-3">
+                        {getStatusBadge(order.status)}
+                        <ChevronRight className="w-5 h-5 text-slate-600 group-hover:text-white group-hover:translate-x-1 transition-all" />
                       </div>
                     </div>
                   </div>
-
-                  <div className="flex items-center justify-between md:justify-end gap-6 border-t md:border-t-0 border-white/5 pt-4 md:pt-0">
-                    <div className="text-left md:text-right">
-                      <span className="block text-[8px] font-black uppercase tracking-widest text-slate-500">
-                        {lang === 'fr' ? 'Montant Total' : 'Total Amount'}
-                      </span>
-                      <span className="text-xl font-black italic text-brand-yellow mt-0.5 block">
-                        {order.total_amount} MAD
-                      </span>
-                    </div>
-
-                    <div className="flex items-center gap-3">
-                      {getStatusBadge(order.status)}
-                      <ChevronRight className="w-5 h-5 text-slate-600 group-hover:text-white group-hover:translate-x-1 transition-all" />
-                    </div>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>
       </main>
 
-      {/* Detailed Order Modal */}
+      {/* Selected Order Detail Modal */}
       {selectedOrder && (
         <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4 bg-background/50 backdrop-blur-xl animate-fadeIn">
           <div className="relative w-full max-w-2xl overflow-hidden glass border-white/10 shadow-[0_50px_100px_rgba(0,0,0,0.5)] rounded-[2.5rem] bg-[#111116] animate-reveal">
@@ -279,11 +307,17 @@ export default function OrderHistoryPage() {
                   {selectedOrder.order_items?.map((item, idx) => (
                     <div key={idx} className="flex gap-4 items-center bg-white/5 border border-white/5 p-3 rounded-2xl">
                       <div className="w-14 h-14 rounded-xl overflow-hidden bg-black/50 relative border border-white/5 shrink-0">
-                        {item.mockupUrl && (
-                          <img src={item.mockupUrl} alt="" className="absolute inset-0 w-full h-full object-cover z-0 opacity-40" />
-                        )}
-                        {item.finalMockup && (
-                          <img src={item.finalMockup} alt="" className="absolute inset-0 w-full h-full object-contain z-10" />
+                        {item.mockup_url ? (
+                          <img src={item.mockup_url} alt="" className="absolute inset-0 w-full h-full object-cover z-0" />
+                        ) : (
+                          <>
+                            {(item.mockupUrl || item.image_url) && (
+                              <img src={item.mockupUrl || item.image_url} alt="" className="absolute inset-0 w-full h-full object-cover z-0 opacity-40" />
+                            )}
+                            {(item.finalMockup || item.design_url) && (
+                              <img src={item.finalMockup || item.design_url} alt="" className="absolute inset-0 w-full h-full object-contain z-10" />
+                            )}
+                          </>
                         )}
                       </div>
                       <div className="flex-1 text-left">

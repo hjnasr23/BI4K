@@ -33,14 +33,15 @@ export default function ClientProductCustomizer({ product }: { product: any }) {
   const finalPrice = hasValidDiscount ? originalPrice * (1 - profile.discount_rate / 100) : originalPrice;
 
   const handleCustomize = (mode: 'upload' | 'ai') => {
-    if (!selectedSize) {
+    if (product.sizes && product.sizes.length > 0 && !selectedSize) {
       setError(lang === 'fr' ? "Veuillez d'abord sélectionner une taille" : "Please select a size first");
       return;
     }
     setError(null);
+    const sizeParam = selectedSize || 'Standard';
     const mockupParam = product.images?.[0] || product.image_url || '';
     const route = mode === 'upload' ? '/upload' : '/editor';
-    const targetUrl = `${route}?productId=${product.id}&mockupUrl=${encodeURIComponent(mockupParam)}&size=${selectedSize}&color=${encodeURIComponent(selectedColor)}`;
+    const targetUrl = `${route}?productId=${product.id}&mockupUrl=${encodeURIComponent(mockupParam)}&size=${encodeURIComponent(sizeParam)}&color=${encodeURIComponent(selectedColor)}`;
     router.push(targetUrl);
   };
 

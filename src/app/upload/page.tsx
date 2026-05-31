@@ -164,8 +164,9 @@ function UploadContent() {
           canvasHeight: 688
         },
         // Legacy fields
-        mockupUrl: mockupSrc,
-        finalMockup: base64String
+        mockupUrl: productData?.image_url || mockupSrc,
+        finalMockup: base64String,
+        mockup_url: productData?.image_url || mockupSrc
       });
 
       setShowToast(true);

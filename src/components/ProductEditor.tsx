@@ -542,10 +542,10 @@ export default function TShirtEditor() {
         price: currentPrice,
         size: querySize,
         quantity: quantity,
-        image_url: savedMockupUrl || productData?.image_url || mockupUrl,
+        image_url: productData?.image_url || mockupUrl,
         design_url: designUrl,
         coordinates: finalCoordinates,
-        mockupUrl: mockupUrl,
+        mockupUrl: productData?.image_url || mockupUrl,
         finalMockup: designUrl,
         mockup_url: savedMockupUrl || mockupUrl
       });
