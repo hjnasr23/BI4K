@@ -64,13 +64,24 @@ export default function CartPage() {
                 <div key={item.cartItemId} className="glass p-6 rounded-[2rem] border border-white/5 flex gap-6 relative bg-[#111116] shadow-xl hover:border-white/10 transition-colors">
                   {/* Thumbnail — Clean product support image with design overlay or composite mockup */}
                   <div className="relative w-24 h-24 sm:w-32 sm:h-32 rounded-xl overflow-hidden bg-white/5 border border-white/10 shrink-0 flex items-center justify-center">
-                    {item.mockup_url ? (
+                    {item.mockup_url && !item.mockup_url.includes('images.24hourwristbands.com') && !item.mockup_url.includes('vecteezy') ? (
                       <img src={item.mockup_url} alt={item.name} className="absolute inset-0 w-full h-full object-contain" />
                     ) : (
                       <>
-                        <img src={item.image_url || item.mockupUrl || ''} alt={item.name} className="absolute inset-0 w-full h-full object-cover z-0 opacity-60" />
+                        <img src={item.image_url || item.mockupUrl || item.mockup_url || ''} alt={item.name} className="absolute inset-0 w-full h-full object-cover z-0 opacity-60" />
                         {item.design_url && (
-                          <img src={item.design_url} alt="" className="absolute inset-0 w-full h-full object-contain z-10 p-2" />
+                          <div 
+                            style={{
+                              position: 'absolute',
+                              left: item.coordinates ? `${(item.coordinates.x / (item.coordinates.canvasWidth || 500)) * 100}%` : '25%',
+                              top: item.coordinates ? `${(item.coordinates.y / (item.coordinates.canvasHeight || 500)) * 100}%` : '20%',
+                              width: item.coordinates ? `${(item.coordinates.width / (item.coordinates.canvasWidth || 500)) * 100}%` : '50%',
+                              height: item.coordinates ? `${(item.coordinates.height / (item.coordinates.canvasHeight || 500)) * 100}%` : '56%',
+                            }}
+                            className="pointer-events-none z-10 flex items-center justify-center"
+                          >
+                            <img src={item.design_url} alt="" className="w-full h-full object-contain" />
+                          </div>
                         )}
                       </>
                     )}

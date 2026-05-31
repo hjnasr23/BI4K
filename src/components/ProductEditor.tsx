@@ -463,33 +463,14 @@ export default function TShirtEditor() {
         throw new Error('Failed to composite mockup via backend');
       }
 
-      const mockupBlob = await compositeResponse.blob();
+      const compositeData = await compositeResponse.json();
+      const savedMockupUrl = compositeData.url;
 
-      // ── Step 4: Upload mockup & save creation to database ──
-      let savedMockupUrl: string | null = null;
+      // ── Step 4: Save creation to database if logged in ──
       const { data: { session } } = await supabase.auth.getSession();
 
-      if (session?.user && mockupBlob) {
+      if (session?.user && savedMockupUrl) {
         const activeUserId = session.user.id;
-        const filename = `mockup_${activeUserId}_${Date.now()}.png`;
-
-        addLog("Uploading merged mockup to cloud storage...", "system");
-        const { error: uploadError } = await supabase.storage
-          .from('user_designs')
-          .upload(filename, mockupBlob, { contentType: 'image/png', upsert: true });
-
-        if (!uploadError) {
-          const { data } = supabase.storage
-            .from('user_designs')
-            .getPublicUrl(filename);
-          if (data?.publicUrl) {
-            savedMockupUrl = data.publicUrl;
-            addLog("Full product mockup uploaded ✓", "system");
-          }
-        } else {
-          console.error("Storage upload error:", uploadError);
-          addLog("Failed to upload mockup to cloud storage.", "error");
-        }
 
         // Insert creation record into the creations table
         const selectedProductId = queryProductId || productData?.id || "cmosndxll00000eps60qnuw76";

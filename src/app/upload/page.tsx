@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useMemo, useState, Suspense, useRef } from "react";
+import { useEffect, useMemo, useState, Suspense, useRef, useCallback } from "react";
+import * as fabric from "fabric";
 import { UploadCloud, PackageCheck, Trash2, Sparkles, AlertCircle, ArrowRight } from "lucide-react";
 import { useApp } from "@/lib/store";
 import { translations } from "@/lib/translations";
@@ -30,14 +31,17 @@ function UploadContent() {
   const [quantity, setQuantity] = useState(1);
   const [designFile, setDesignFile] = useState<File | null>(null);
   const [designUrl, setDesignUrl] = useState<string | null>(null);
-  const [scale, setScale] = useState(1);
-  const [offsetX, setOffsetX] = useState(0);
-  const [offsetY, setOffsetY] = useState(0);
+  const [isStandardizing, setIsStandardizing] = useState(false);
 
-  // Dragging States for Canvas Image
-  const [isDragging, setIsDragging] = useState(false);
-  const dragStart = useRef({ x: 0, y: 0 });
-  const dragOffsetStart = useRef({ x: 0, y: 0 });
+  // Synchronized canvas states for backwards compatibility and UI
+  const [scale, setScale] = useState(1);
+  const [offsetX, setOffsetX] = useState(250);
+  const [offsetY, setOffsetY] = useState(250);
+
+  // Fabric.js Canvas References
+  const fabricRef = useRef<fabric.Canvas | null>(null);
+  const [fabricCanvas, setFabricCanvas] = useState<fabric.Canvas | null>(null);
+  const [mounted, setMounted] = useState(false);
 
   // Cart Actions
   const addToCart = useCartStore((state) => state.addToCart);
@@ -69,58 +73,177 @@ function UploadContent() {
   }, [queryProductId]);
 
   useEffect(() => {
-    if (!designFile) {
-      setDesignUrl(null);
+    setMounted(true);
+  }, []);
+
+  // Load custom image onto Fabric canvas
+  const applyImageToCanvas = useCallback((imageUrl: string, canvas: fabric.Canvas) => {
+    canvas.clear();
+    fabric.Image.fromURL(imageUrl, { crossOrigin: "anonymous" }).then((img) => {
+      img.set({
+        lockMovementX: false,
+        lockMovementY: false,
+        lockScalingX: false,
+        lockScalingY: false,
+        lockRotation: false,
+        hasControls: true,
+        hasBorders: true,
+        selectable: true,
+        evented: true,
+        originX: 'center',
+        originY: 'center',
+      });
+      img.scaleToWidth(220);
+      canvas.centerObject(img);
+      canvas.add(img);
+      canvas.bringObjectToFront(img);
+      canvas.setActiveObject(img);
+      canvas.renderAll();
+
+      const baseWidth = 220;
+      const originalWidth = img.width || 220;
+      const baseScale = baseWidth / originalWidth;
+
+      setScale((img.scaleX || baseScale) / baseScale);
+      setOffsetX(img.left || 250);
+      setOffsetY(img.top || 250);
+    }).catch((err: any) => {
+      console.error("Fabric image loading error:", err);
+    });
+  }, []);
+
+  // Initialize Fabric canvas
+  useEffect(() => {
+    if (!mounted) return;
+    if (fabricRef.current) return;
+
+    const canvasElement = document.getElementById('main-fabric-canvas') as HTMLCanvasElement;
+    if (!canvasElement) {
+      console.error('Canvas element #main-fabric-canvas not found in DOM');
       return;
     }
 
-    const url = URL.createObjectURL(designFile);
-    setDesignUrl(url);
+    const canvas = new fabric.Canvas(canvasElement, {
+      width: 500,
+      height: 500,
+      backgroundColor: "transparent",
+      preserveObjectStacking: true,
+    });
 
-    return () => {
-      URL.revokeObjectURL(url);
-    };
-  }, [designFile]);
+    fabricRef.current = canvas;
+    setFabricCanvas(canvas);
 
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    canvas.clipPath = undefined;
+
+    fabric.Object.prototype.set({
+      transparentCorners: false,
+      cornerColor: '#4A90E2',
+      cornerStrokeColor: '#ffffff',
+      cornerStyle: 'circle',
+      cornerSize: 10,
+      padding: 10,
+      borderColor: '#4A90E2',
+      borderDashArray: [4, 4]
+    });
+
+    canvas.on('object:moving', (e) => {
+      const activeObject = e.target;
+      if (activeObject) {
+        setOffsetX(Math.round(activeObject.left || 250));
+        setOffsetY(Math.round(activeObject.top || 250));
+      }
+    });
+
+    canvas.on('object:scaling', (e) => {
+      const activeObject = e.target;
+      if (activeObject) {
+        const baseWidth = 220;
+        const originalWidth = activeObject.width || 220;
+        const baseScale = baseWidth / originalWidth;
+        setScale((activeObject.scaleX || baseScale) / baseScale);
+      }
+    });
+
+  }, [mounted]);
+
+  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
     setDesignFile(file);
-    setScale(1);
-    setOffsetX(0);
-    setOffsetY(0);
-  };
+    setIsStandardizing(true);
 
-  const handleMouseDown = (e: React.MouseEvent) => {
-    if (!designUrl) return;
-    setIsDragging(true);
-    dragStart.current = { x: e.clientX, y: e.clientY };
-    dragOffsetStart.current = { x: offsetX, y: offsetY };
-  };
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
 
-  useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      if (!isDragging) return;
-      const dx = e.clientX - dragStart.current.x;
-      const dy = e.clientY - dragStart.current.y;
-      setOffsetX(dragOffsetStart.current.x + dx);
-      setOffsetY(dragOffsetStart.current.y + dy);
-    };
+      const response = await fetch('/api/design/standardize', {
+        method: 'POST',
+        body: formData,
+      });
 
-    const handleMouseUp = () => {
-      setIsDragging(false);
-    };
+      if (!response.ok) {
+        throw new Error('Failed to standardize design file on the server');
+      }
 
-    if (isDragging) {
-      window.addEventListener('mousemove', handleMouseMove);
-      window.addEventListener('mouseup', handleMouseUp);
+      const data = await response.json();
+      const publicSupabaseUrl = data.url;
+
+      setDesignUrl(publicSupabaseUrl);
+
+      if (fabricRef.current) {
+        applyImageToCanvas(publicSupabaseUrl, fabricRef.current);
+      }
+    } catch (err: any) {
+      console.error('Error during design standardization upload:', err);
+      alert("Erreur lors de l'envoi du design. Veuillez réessayer.");
+      setDesignFile(null);
+      setDesignUrl(null);
+    } finally {
+      setIsStandardizing(false);
     }
+  };
 
-    return () => {
-      window.removeEventListener('mousemove', handleMouseMove);
-      window.removeEventListener('mouseup', handleMouseUp);
-    };
-  }, [isDragging]);
+  const handleScaleSliderChange = (newScale: number) => {
+    setScale(newScale);
+    if (fabricRef.current) {
+      const activeObject = fabricRef.current.getActiveObject();
+      if (activeObject) {
+        const baseWidth = 220;
+        const originalWidth = activeObject.width || 220;
+        const baseScale = baseWidth / originalWidth;
+        
+        activeObject.set({
+          scaleX: baseScale * newScale,
+          scaleY: baseScale * newScale
+        }).setCoords();
+        fabricRef.current.renderAll();
+      }
+    }
+  };
+
+  const handleResetAlignment = () => {
+    setOffsetX(250);
+    setOffsetY(250);
+    setScale(1);
+    if (fabricRef.current) {
+      const activeObject = fabricRef.current.getActiveObject();
+      if (activeObject) {
+        const baseWidth = 220;
+        const originalWidth = activeObject.width || 220;
+        const baseScale = baseWidth / originalWidth;
+
+        activeObject.set({
+          left: 250,
+          top: 250,
+          scaleX: baseScale,
+          scaleY: baseScale,
+          angle: 0
+        }).setCoords();
+        fabricRef.current.centerObject(activeObject);
+        fabricRef.current.renderAll();
+      }
+    }
+  };
 
   const [isFinishing, setIsFinishing] = useState(false);
   const [showSaveModal, setShowSaveModal] = useState(false);
@@ -136,17 +259,88 @@ function UploadContent() {
   const originalPrice = isSaleActive ? productData.sale_price : (productData?.price || 0);
   const currentPrice = hasValidDiscount ? originalPrice * (1 - profile.discount_rate / 100) : originalPrice;
 
-  const handleAddToCart = () => {
+  const handleAddToCart = async () => {
+    if (!fabricRef.current) {
+      console.error('handleAddToCart: fabricRef.current is null');
+      return;
+    }
     if (!designFile) {
       alert("Veuillez d'abord importer un design / Please upload a design first.");
       return;
     }
-    
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      const base64String = reader.result as string;
-      const mockupSrc = queryMockupUrl ? decodeURIComponent(queryMockupUrl) : '';
+
+    setIsFinishing(true);
+    try {
+      const canvas = fabricRef.current;
+      const allObjects = canvas.getObjects();
+      if (allObjects.length === 0) {
+        alert("No design to add.");
+        setIsFinishing(false);
+        return;
+      }
+
+      // Calculate the bounding box of ALL objects
+      let minX = canvas.getWidth(), minY = canvas.getHeight(), maxX = 0, maxY = 0;
+      allObjects.forEach(obj => {
+        const rect = obj.getBoundingRect();
+        if (rect.left < minX) minX = rect.left;
+        if (rect.top < minY) minY = rect.top;
+        if (rect.left + rect.width > maxX) maxX = rect.left + rect.width;
+        if (rect.top + rect.height > maxY) maxY = rect.top + rect.height;
+      });
+
+      // Clamp to canvas boundaries so we don't send negative coordinates to Sharp
+      minX = Math.max(0, minX);
+      minY = Math.max(0, minY);
+      maxX = Math.min(canvas.getWidth(), maxX);
+      maxY = Math.min(canvas.getHeight(), maxY);
+
+      let finalCoordinates = {
+        x: Math.round(minX),
+        y: Math.round(minY),
+        width: Math.round(maxX - minX),
+        height: Math.round(maxY - minY),
+        canvasWidth: canvas.getWidth(),
+        canvasHeight: canvas.getHeight()
+      };
+
+      // Deselect to remove selection handles, then capture
+      canvas.discardActiveObject();
+      canvas.renderAll();
+
+      // Export the isolated transparent design cropped to bounding box
+      const transparentDesign = canvas.toDataURL({
+        format: 'png',
+        quality: 1,
+        multiplier: 1,
+        left: finalCoordinates.x,
+        top: finalCoordinates.y,
+        width: finalCoordinates.width,
+        height: finalCoordinates.height
+      });
+      const isolatedDesignUrl = transparentDesign || "";
+
+      // Call Backend Compositing API
+      const mockupSrc = queryMockupUrl ? decodeURIComponent(queryMockupUrl) : (productData?.image_url || "");
       
+      const compositeResponse = await fetch('/api/design/composite', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          baseImageUrl: mockupSrc,
+          designUrl: designUrl || isolatedDesignUrl,
+          placement: finalCoordinates
+        })
+      });
+
+      if (!compositeResponse.ok) {
+        throw new Error('Failed to composite mockup via backend');
+      }
+
+      const compositeData = await compositeResponse.json();
+      const savedMockupUrl = compositeData.url;
+
+      // Add to cart
       addToCart({
         id: queryProductId || "unknown",
         name: productData?.name || "Premium Custom Design",
@@ -154,24 +348,20 @@ function UploadContent() {
         size: querySize,
         quantity: quantity,
         image_url: productData?.image_url || mockupSrc,
-        design_url: base64String,
-        coordinates: {
-          x: Math.round(offsetX),
-          y: Math.round(offsetY),
-          width: Math.round(220 * scale),
-          height: Math.round(300 * scale),
-          canvasWidth: 550,
-          canvasHeight: 688
-        },
-        // Legacy fields
+        design_url: isolatedDesignUrl,
+        coordinates: finalCoordinates,
         mockupUrl: productData?.image_url || mockupSrc,
-        finalMockup: base64String,
-        mockup_url: productData?.image_url || mockupSrc
+        finalMockup: isolatedDesignUrl,
+        mockup_url: savedMockupUrl || mockupSrc
       });
 
       setShowToast(true);
-    };
-    reader.readAsDataURL(designFile);
+    } catch (err: any) {
+      console.error("Error securing custom cart snapshot:", err);
+      alert("Failed to create mockup. Please try again.");
+    } finally {
+      setIsFinishing(false);
+    }
   };
 
   const handleCheckout = async (skipAuth: boolean = false) => {
@@ -308,56 +498,59 @@ function UploadContent() {
               {/* Workspace Border Overlay */}
               <div className="absolute inset-0 border border-white/5 rounded-[3rem] pointer-events-none" />
 
-              {/* Product Mockup Container */}
-              <div className="relative w-full h-full flex items-center justify-center">
+              {/* Product Mockup Container (Fixed 500x500 reference scale) */}
+              <div className="relative w-[500px] h-[500px] flex items-center justify-center rounded-2xl overflow-hidden bg-black shadow-[0_40px_80px_rgba(0,0,0,0.6)]">
                 
                 {/* Main Texture/Mockup Image */}
                 {queryMockupUrl ? (
                   <img
                     src={decodeURIComponent(queryMockupUrl)}
-                    className="absolute inset-0 w-full h-full object-contain rounded-[3rem] z-10 pointer-events-none"
+                    className="absolute inset-0 w-full h-full object-cover z-0 pointer-events-none"
                     alt=""
                   />
                 ) : (
-                  <div className="absolute inset-0 rounded-[3rem] bg-[#111116] flex items-center justify-center">
+                  <div className="absolute inset-0 bg-[#111116] flex items-center justify-center">
                     <span className="text-foreground/20 font-black tracking-widest text-xs uppercase">No Mockup loaded</span>
                   </div>
                 )}
 
                 {/* Print Zone Guide Overlay */}
-                <div className="absolute inset-[18%] border-2 border-dashed border-white/10 rounded-2xl z-30 pointer-events-none">
-                  <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 px-4 py-1 bg-[#111] border border-white/10 rounded-full text-[7px] font-black text-white uppercase tracking-[0.4em]">
-                    Zone d'impression
-                  </div>
+                <div className="absolute border border-dashed border-white/20 pointer-events-none rounded-xl z-20" style={{ left: 125, top: 100, width: 250, height: 280 }}>
+                  <div className="absolute -top-1 -left-1 w-2 h-2 bg-white/50 rounded-full" />
+                  <div className="absolute -top-1 -right-1 w-2 h-2 bg-white/50 rounded-full" />
+                  <div className="absolute -bottom-1 -left-1 w-2 h-2 bg-white/50 rounded-full" />
+                  <div className="absolute -bottom-1 -right-1 w-2 h-2 bg-white/50 rounded-full" />
+                  <span className="absolute -top-5 left-1/2 -translate-x-1/2 text-[8px] font-black uppercase tracking-widest text-white/40 whitespace-nowrap">Zone d'impression</span>
                 </div>
 
-                {/* Interactive Dragging/Uploading Layer */}
-                <div className="absolute inset-0 z-40 flex items-center justify-center">
-                  {designUrl ? (
-                    <div
-                      onMouseDown={handleMouseDown}
-                      className="cursor-move select-none active:scale-[1.01] transition-transform duration-100"
-                      style={{ 
-                        transform: `translate(${offsetX}px, ${offsetY}px) scale(${scale})`,
-                        touchAction: 'none'
-                      }}
-                    >
-                      <img src={designUrl} className="max-w-[220px] max-h-[300px] object-contain drop-shadow-2xl pointer-events-none" alt="Custom Design" />
-                    </div>
-                  ) : (
-                    <label className="flex flex-col items-center justify-center p-8 border-2 border-dashed border-white/10 rounded-[2.5rem] bg-black/60 hover:bg-black/80 hover:border-brand-blue/50 transition-all cursor-pointer group text-center pointer-events-auto max-w-[280px]">
-                      <input type="file" accept=".png, image/png" className="hidden" onChange={handleFileChange} />
+                {/* Fabric.js Canvas */}
+                <canvas id="main-fabric-canvas" width={500} height={500} className="absolute inset-0 z-10" />
+
+                {/* Standardizing Loader */}
+                {isStandardizing && (
+                  <div className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-black/75 backdrop-blur-sm pointer-events-auto rounded-2xl">
+                    <Loader2 className="w-10 h-10 animate-spin text-brand-blue mb-4" />
+                    <p className="font-black uppercase text-[10px] tracking-[0.25em] text-white">Optimisation du design...</p>
+                    <p className="text-[8px] text-foreground/40 font-bold uppercase tracking-[0.2em] mt-1.5">Standardisation en 1024x1024 PNG</p>
+                  </div>
+                )}
+
+                {/* Fallback Upload Button when no design is uploaded yet */}
+                {!designUrl && !isStandardizing && (
+                  <div className="absolute inset-0 z-30 flex items-center justify-center pointer-events-auto">
+                    <label className="flex flex-col items-center justify-center p-8 border-2 border-dashed border-white/10 rounded-[2.5rem] bg-black/60 hover:bg-black/80 hover:border-brand-blue/50 transition-all cursor-pointer group text-center max-w-[280px]">
+                      <input type="file" accept=".png, image/png, image/jpeg, image/jpg" className="hidden" onChange={handleFileChange} />
                       <div className="w-12 h-12 rounded-2xl bg-brand-blue/10 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
                         <UploadCloud className="w-6 h-6 text-brand-blue" />
                       </div>
                       <p className="font-black uppercase text-[10px] tracking-widest mb-1 text-white">Importer le design</p>
-                      <p className="text-[8px] text-foreground/40 font-bold uppercase tracking-[0.2em] mb-3">Format PNG uniquement</p>
+                      <p className="text-[8px] text-foreground/40 font-bold uppercase tracking-[0.2em] mb-3">Format PNG/JPG</p>
                       <p className="text-[9px] font-bold text-amber-400/90 leading-relaxed uppercase tracking-wider max-w-[240px]">
-                        Astuce : Pour un meilleur rendu, téléchargez une image avec un fond transparent (format PNG).
+                        Astuce : Pour un meilleur rendu, téléchargez une image avec un fond transparent.
                       </p>
                     </label>
-                  )}
-                </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -400,29 +593,17 @@ function UploadContent() {
             )}
 
             {/* Design Actions & Scaling */}
-            {designFile && (
+            {designFile && !isStandardizing && (
               <div className="border-t border-white/5 pt-6 mb-8 space-y-5">
                 <div className="flex items-center justify-between p-3.5 rounded-xl bg-white/5 border border-white/5">
                   <span className="text-[9px] font-bold text-slate-300 truncate max-w-[160px] uppercase tracking-wider">{designFile.name}</span>
-                  <button onClick={() => setDesignFile(null)} className="text-rose-400 hover:text-rose-300 transition-colors text-[9px] font-black uppercase tracking-widest">
+                  <button onClick={() => { setDesignFile(null); setDesignUrl(null); if (fabricRef.current) fabricRef.current.clear(); }} className="text-rose-400 hover:text-rose-300 transition-colors text-[9px] font-black uppercase tracking-widest">
                     Remove
                   </button>
                 </div>
 
                 <div className="space-y-3">
-                  <div className="flex justify-between items-center">
-                    <label className="text-[9px] font-black uppercase tracking-[0.2em] text-foreground/40">Scale: {Math.round(scale * 100)}%</label>
-                  </div>
-                  <input
-                    type="range"
-                    min="0.10"
-                    max="2.00"
-                    step="0.01"
-                    value={scale}
-                    onChange={(e) => setScale(parseFloat(e.target.value))}
-                    className="w-full h-1.5 bg-white/10 rounded-lg appearance-none cursor-pointer accent-brand-blue focus:outline-none"
-                  />
-                  <button onClick={() => { setOffsetX(0); setOffsetY(0); setScale(1); }} className="w-full py-2 rounded-xl bg-white/5 hover:bg-white/10 text-[8px] font-black uppercase tracking-widest border border-white/5 text-slate-400 transition-colors">
+                  <button onClick={handleResetAlignment} className="w-full py-2 rounded-xl bg-white/5 hover:bg-white/10 text-[8px] font-black uppercase tracking-widest border border-white/5 text-slate-400 transition-colors">
                     Reset Alignment
                   </button>
                 </div>
@@ -454,12 +635,12 @@ function UploadContent() {
 
             {/* Add to Cart Button */}
             <button
-              onClick={() => handleAddToCart()}
-              disabled={!designFile}
-              className={`w-full py-5 rounded-2xl flex items-center justify-center gap-3 font-black text-xs uppercase tracking-[0.3em] transition-all relative overflow-hidden group/order ${!designFile ? 'bg-white/5 text-foreground/20 cursor-not-allowed' : 'bg-brand-blue text-white hover:scale-[1.02] active:scale-[0.98] shadow-xl shadow-brand-blue/20'}`}
+              onClick={handleAddToCart}
+              disabled={!designFile || isFinishing || isStandardizing}
+              className={`w-full py-5 rounded-2xl flex items-center justify-center gap-3 font-black text-xs uppercase tracking-[0.3em] transition-all relative overflow-hidden group/order ${!designFile || isFinishing || isStandardizing ? 'bg-white/5 text-foreground/20 cursor-not-allowed' : 'bg-brand-blue text-white hover:scale-[1.02] active:scale-[0.98] shadow-xl shadow-brand-blue/20'}`}
             >
-              <PackageCheck className="w-5 h-5" />
-              Ajouter au panier
+              {isFinishing ? <Loader2 className="w-5 h-5 animate-spin" /> : <PackageCheck className="w-5 h-5" />}
+              {isFinishing ? 'Traitement…' : 'Ajouter au panier'}
             </button>
           </div>
 
