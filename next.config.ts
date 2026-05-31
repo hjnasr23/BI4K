@@ -1,6 +1,12 @@
+const isGithubActions = process.env.GITHUB_ACTIONS || false;
+const repo = 'BI4K';
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  output: 'export',
+  basePath: isGithubActions ? `/${repo}` : '',
   images: {
+    unoptimized: true,
     remotePatterns: [
       {
         protocol: 'https',

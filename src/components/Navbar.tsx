@@ -77,8 +77,8 @@ export function Navbar() {
   return (
     <nav className={`fixed top-0 left-0 right-0 z-[100] transition-all duration-500 ${isVisible ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0'} ${scrolled ? 'py-3' : 'py-5'}`}>
       <div className={`container mx-auto px-4 transition-all duration-500 ${scrolled ? 'max-w-5xl' : 'max-w-7xl'}`}>
-        <div className={`glass rounded-2xl flex items-center justify-between px-6 py-2 transition-all duration-500 ${scrolled ? 'shadow-2xl shadow-brand-blue/10 border-brand-blue/20 bg-background/80' : 'bg-transparent border-transparent shadow-none'}`}>
-          <Link href="/" className="flex items-center gap-3 group">
+        <div className={`glass rounded-2xl flex items-center justify-between gap-8 px-6 py-2 transition-all duration-500 ${scrolled ? 'shadow-2xl shadow-brand-blue/10 border-brand-blue/20 bg-background/80' : 'bg-transparent border-transparent shadow-none'}`}>
+          <Link href="/" className="flex items-center gap-3 group shrink-0">
             <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-blue to-brand-yellow flex items-center justify-center shadow-lg shadow-brand-blue/25 group-hover:rotate-12 transition-transform duration-500">
               <Boxes className="w-6 h-6 text-white" />
             </div>
@@ -93,7 +93,7 @@ export function Navbar() {
             <Link href="/help" className="hover:text-brand-yellow transition-colors">{t.help}</Link>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 shrink-0">
             <div className="flex items-center gap-1 bg-card-bg rounded-full p-1 border border-card-border">
               <button
                 onClick={() => setTheme('dark')}
