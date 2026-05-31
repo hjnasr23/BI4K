@@ -312,70 +312,7 @@ export default function TShirtEditor() {
   // SECURE CLOUDFLARE AI GENERATION — Stable Diffusion XL
   // ==========================================================
 
-  // Helper: composite the garment background + Fabric canvas into one merged PNG blob
-  // Accounts for Fabric.js retina/devicePixelRatio scaling to preserve exact visual placement
-  const generateMockupBlob = useCallback(async (): Promise<Blob | null> => {
-    const fabricCanvas = fabricRef.current;
-    if (!fabricCanvas) return null;
 
-    // Deselect any active objects to remove selection handles/borders from the export
-    fabricCanvas.discardActiveObject();
-    fabricCanvas.renderAll();
-
-    // Use the logical (CSS) dimensions for our output — this is what the user sees
-    const logicalWidth = fabricCanvas.getWidth();
-    const logicalHeight = fabricCanvas.getHeight();
-
-    // The actual Fabric canvas element may be scaled by devicePixelRatio (retina)
-    const fabricEl = fabricCanvas.getElement();
-    const elWidth = fabricEl.width;   // actual pixel width (e.g. 1000 on 2x retina)
-    const elHeight = fabricEl.height; // actual pixel height
-
-    // Create an offscreen canvas matching the Fabric element's ACTUAL pixel dimensions
-    // so that drawImage copies 1:1 without any rescaling that would distort placement
-    const offscreen = document.createElement('canvas');
-    offscreen.width = elWidth;
-    offscreen.height = elHeight;
-    const ctx = offscreen.getContext('2d');
-    if (!ctx) return null;
-
-    // 1. Draw the garment background image, scaled to fill the full actual pixel area
-    try {
-      const bgImg = await new Promise<HTMLImageElement>((resolve, reject) => {
-        const img = new Image();
-        img.crossOrigin = 'anonymous';
-        img.onload = () => resolve(img);
-        img.onerror = reject;
-        img.src = mockupUrl;
-      });
-      ctx.drawImage(bgImg, 0, 0, elWidth, elHeight);
-    } catch (err) {
-      console.warn('Could not load garment background for mockup composite:', err);
-      ctx.fillStyle = '#111';
-      ctx.fillRect(0, 0, elWidth, elHeight);
-    }
-
-    // 2. Draw the Fabric canvas element on top — 1:1 pixel match, no rescaling
-    ctx.drawImage(fabricEl, 0, 0);
-
-    // 3. Export as blob at the logical resolution (500×500) for consistent file sizes
-    // by scaling down from retina to logical via a second offscreen canvas
-    if (elWidth !== logicalWidth || elHeight !== logicalHeight) {
-      const output = document.createElement('canvas');
-      output.width = logicalWidth;
-      output.height = logicalHeight;
-      const outCtx = output.getContext('2d');
-      if (!outCtx) return null;
-      outCtx.drawImage(offscreen, 0, 0, logicalWidth, logicalHeight);
-      return new Promise<Blob | null>((resolve) => {
-        output.toBlob((blob) => resolve(blob), 'image/png', 1);
-      });
-    }
-
-    return new Promise<Blob | null>((resolve) => {
-      offscreen.toBlob((blob) => resolve(blob), 'image/png', 1);
-    });
-  }, [mockupUrl]);
 
   const generateWithCloudflareAI = async (): Promise<void> => {
     if (!prompt.trim()) return;
@@ -452,41 +389,81 @@ export default function TShirtEditor() {
       const canvas = fabricRef.current;
 
       // ── Step 1: Extract placement coordinates BEFORE deselecting ──
-      const activeObject = canvas.getActiveObject() || canvas.getObjects()[0];
+      const allObjects = canvas.getObjects();
+      if (allObjects.length === 0) {
+        addLog("No design to add.", "error");
+        setIsFinalizing(false);
+        return;
+      }
 
-      const clipPath = canvas.clipPath;
-      const clipX = (clipPath as any)?.left ?? 150;
-      const clipY = (clipPath as any)?.top ?? 150;
-      const clipW = (clipPath as any)?.width ?? 200;
-      const clipH = (clipPath as any)?.height ?? 200;
-      const canvasW = canvas.getWidth();
-      const canvasH = canvas.getHeight();
+      // Calculate the bounding box of ALL objects
+      let minX = canvas.getWidth(), minY = canvas.getHeight(), maxX = 0, maxY = 0;
+      allObjects.forEach(obj => {
+        const rect = obj.getBoundingRect();
+        if (rect.left < minX) minX = rect.left;
+        if (rect.top < minY) minY = rect.top;
+        if (rect.left + rect.width > maxX) maxX = rect.left + rect.width;
+        if (rect.top + rect.height > maxY) maxY = rect.top + rect.height;
+      });
+
+      // Clamp to canvas boundaries so we don't send negative coordinates to Sharp
+      minX = Math.max(0, minX);
+      minY = Math.max(0, minY);
+      maxX = Math.min(canvas.getWidth(), maxX);
+      maxY = Math.min(canvas.getHeight(), maxY);
 
       let finalCoordinates = {
-        x: clipX, y: clipY, width: clipW, height: clipH,
-        canvasWidth: canvasW, canvasHeight: canvasH
+        x: Math.round(minX),
+        y: Math.round(minY),
+        width: Math.round(maxX - minX),
+        height: Math.round(maxY - minY),
+        canvasWidth: canvas.getWidth(),
+        canvasHeight: canvas.getHeight()
       };
-
-      if (activeObject) {
-        const rect = activeObject.getBoundingRect();
-        finalCoordinates = {
-          x: Math.round(rect.left), y: Math.round(rect.top),
-          width: Math.round(rect.width), height: Math.round(rect.height),
-          canvasWidth: canvasW, canvasHeight: canvasH
-        };
-      }
 
       // ── Step 2: Deselect to remove selection handles, then capture ──
       canvas.discardActiveObject();
+      
+      // Temporarily remove multiply blend mode to prevent fading in the export
+      const originalBlendModes = allObjects.map(obj => obj.globalCompositeOperation);
+      allObjects.forEach(obj => obj.set('globalCompositeOperation', 'source-over'));
+      
       canvas.renderAll();
 
-      // Export the isolated transparent design (no background, just user artwork)
-      const transparentDesign = canvas.toDataURL({ format: 'png', quality: 1, multiplier: 1 });
+      // Export the isolated transparent design EXACTLY cropped to the bounding box
+      const transparentDesign = canvas.toDataURL({
+        format: 'png',
+        quality: 1,
+        multiplier: 1,
+        left: finalCoordinates.x,
+        top: finalCoordinates.y,
+        width: finalCoordinates.width,
+        height: finalCoordinates.height
+      });
       const designUrl = transparentDesign || "";
 
-      // ── Step 3: Generate the merged product mockup (garment + user-positioned design) ──
+      // Restore blend modes
+      allObjects.forEach((obj, i) => obj.set('globalCompositeOperation', originalBlendModes[i]));
+      canvas.renderAll();
+
+      // ── Step 3: Generate the merged product mockup via Backend Engine ──
       addLog("Compositing full product mockup...", "system");
-      const mockupBlob = await generateMockupBlob();
+      
+      const compositeResponse = await fetch('/api/design/composite', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          baseImageUrl: mockupUrl,
+          designUrl: designUrl,
+          placement: finalCoordinates
+        })
+      });
+
+      if (!compositeResponse.ok) {
+        throw new Error('Failed to composite mockup via backend');
+      }
+
+      const mockupBlob = await compositeResponse.blob();
 
       // ── Step 4: Upload mockup & save creation to database ──
       let savedMockupUrl: string | null = null;

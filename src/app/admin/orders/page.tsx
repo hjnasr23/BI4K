@@ -39,6 +39,7 @@ interface OrderItem {
   // Legacy fields
   mockupUrl?: string;
   finalMockup?: string;
+  mockup_url?: string;
 }
 
 interface Order {
@@ -412,7 +413,9 @@ export default function AdminOrdersPage() {
                                               <span className="text-[9px] font-black uppercase tracking-widest text-blue-400">Mockup de Production</span>
                                             </div>
                                             <div className="relative aspect-square max-h-[200px] rounded-xl overflow-hidden bg-black/50 border border-white/10 flex items-center justify-center">
-                                              {supportSrc ? (
+                                              {item.mockup_url ? (
+                                                <img src={item.mockup_url} alt="Mockup de Production" className="w-full h-full object-contain z-0" />
+                                              ) : supportSrc ? (
                                                 <>
                                                   <img src={supportSrc} alt="Support produit" className="w-full h-full object-contain z-0" />
                                                   {hasCoords && item.coordinates && designSrc && (
