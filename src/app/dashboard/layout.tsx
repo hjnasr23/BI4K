@@ -53,11 +53,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         {/* Sidebar Header / Logo */}
         <div className="p-6 border-b border-neutral-100 dark:border-white/5">
           <Link href="/" className="flex items-center gap-3 group">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-blue-500 to-amber-500 flex items-center justify-center shadow-md group-hover:rotate-12 transition-transform duration-300">
-              <Boxes className="w-5 h-5 text-white" />
-            </div>
-            <span className="font-black text-xl tracking-tighter text-neutral-900 dark:text-white group-hover:text-blue-500 transition-colors">
-              BI4K
+            <img src="/logo.png" alt="Business Intelligence 4K" className="h-8 w-auto object-contain group-hover:scale-105 transition-transform duration-300" />
+            <span className="font-black text-lg tracking-tighter text-neutral-900 dark:text-white group-hover:text-blue-500 transition-colors truncate">
+              Business Intelligence 4K
             </span>
           </Link>
         </div>
@@ -111,11 +109,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
       {/* Mobile Top Bar */}
       <div className="md:hidden fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-4 py-3 bg-white/95 dark:bg-neutral-900/95 backdrop-blur-xl border-b border-neutral-200 dark:border-white/10">
-        <Link href="/" className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-blue-500 to-amber-500 flex items-center justify-center">
-            <Boxes className="w-4 h-4 text-white" />
-          </div>
-          <span className="font-black text-lg tracking-tighter">BI4K</span>
+        <Link href="/" className="flex items-center gap-2 min-w-0">
+          <img src="/logo.png" alt="Business Intelligence 4K" className="h-8 w-auto object-contain shrink-0" />
+          <span className="font-black text-lg tracking-tighter truncate">Business Intelligence 4K</span>
         </Link>
         <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-amber-500 flex items-center justify-center text-white font-bold text-xs shadow">
           {userInitial}

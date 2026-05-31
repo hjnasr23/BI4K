@@ -182,15 +182,15 @@ export function AuthModal() {
 
           {/* Logo icon at top left */}
           <div className="p-8 relative z-10 self-start">
-            <button onClick={closeModal} className="w-10 h-10 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center hover:scale-105 transition-transform shadow-md">
-              <Boxes className="w-6 h-6 text-white" />
+            <button onClick={closeModal} className="h-12 w-auto bg-white/20 backdrop-blur-md flex items-center justify-center hover:scale-105 transition-transform shadow-md rounded-xl p-2">
+              <img src="/logo.png" alt="Business Intelligence 4K" className="h-full w-auto object-contain" />
             </button>
           </div>
 
           {/* Rotated text at bottom left */}
           <div className="relative z-10 p-8 h-40">
             <span className="-rotate-90 origin-bottom-left absolute bottom-12 left-12 text-white/80 tracking-[0.2em] text-[10px] font-bold uppercase whitespace-nowrap block">
-              BI4K SECURE ACCESS
+              BUSINESS INTELLIGENCE 4K SECURE ACCESS
             </span>
           </div>
         </div>
@@ -215,7 +215,7 @@ export function AuthModal() {
 
             {/* Form Title & Subtitle */}
             <h2 className="text-4xl font-extrabold text-neutral-900 dark:text-white mb-2 tracking-tight">
-              {isLogin ? "Welcome Back" : "Join BI4K"}
+              {isLogin ? "Welcome Back" : "Join Business Intelligence 4K"}
             </h2>
             <p className="text-neutral-500 dark:text-neutral-400 text-sm mb-2 font-medium">
               {isLogin 

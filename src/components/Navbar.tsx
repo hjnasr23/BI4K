@@ -76,24 +76,28 @@ export function Navbar() {
 
   return (
     <nav className={`fixed top-0 left-0 right-0 z-[100] transition-all duration-500 ${isVisible ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0'} ${scrolled ? 'py-3' : 'py-5'}`}>
-      <div className={`container mx-auto px-4 transition-all duration-500 ${scrolled ? 'max-w-5xl' : 'max-w-7xl'}`}>
-        <div className={`glass rounded-2xl flex items-center justify-between gap-8 px-6 py-2 transition-all duration-500 ${scrolled ? 'shadow-2xl shadow-brand-blue/10 border-brand-blue/20 bg-background/80' : 'bg-transparent border-transparent shadow-none'}`}>
-          <Link href="/" className="flex items-center gap-3 group shrink-0">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-blue to-brand-yellow flex items-center justify-center shadow-lg shadow-brand-blue/25 group-hover:rotate-12 transition-transform duration-500">
-              <Boxes className="w-6 h-6 text-white" />
-            </div>
-            <span className="font-black text-2xl tracking-tighter text-foreground group-hover:text-brand-blue transition-colors">
-              BI4K
-            </span>
-          </Link>
+      <div className={`w-full mx-auto px-4 transition-all duration-500 ${scrolled ? 'max-w-6xl' : 'max-w-7xl'}`}>
+        <div className={`glass rounded-2xl flex items-center px-6 py-2 transition-all duration-500 ${scrolled ? 'shadow-2xl shadow-brand-blue/10 border-brand-blue/20 bg-background/80' : 'bg-transparent border-transparent shadow-none'}`}>
+          
+          {/* Left: Logo */}
+          <div className="flex-1 flex justify-start min-w-0 pr-4">
+            <Link href="/" className="flex items-center gap-3 group shrink-0 min-w-0">
+              <img src="/logo.png" alt="Business Intelligence 4K" className="h-10 w-auto object-contain group-hover:scale-105 transition-transform duration-500 shrink-0" />
+              <span className="font-black text-xl tracking-tighter text-foreground group-hover:text-brand-blue transition-colors hidden sm:block truncate">
+                {scrolled ? 'BI4K' : 'Business Intelligence 4K'}
+              </span>
+            </Link>
+          </div>
 
-          <div className="hidden md:flex items-center gap-10 text-[11px] font-black uppercase tracking-[0.2em] text-foreground/60">
+          {/* Middle: Links */}
+          <div className="hidden md:flex flex-none items-center justify-center gap-10 text-[11px] font-black uppercase tracking-[0.2em] text-foreground/60 px-4">
             <Link href="/#services" className="hover:text-brand-yellow transition-colors">Services</Link>
             <Link href="/categories" className="hover:text-brand-yellow transition-colors">{t.catalog || "Categories"}</Link>
             <Link href="/help" className="hover:text-brand-yellow transition-colors">{t.help}</Link>
           </div>
 
-          <div className="flex items-center gap-3 shrink-0">
+          {/* Right: Controls */}
+          <div className="flex-1 flex items-center justify-end gap-3 shrink-0 pl-4">
             <div className="flex items-center gap-1 bg-card-bg rounded-full p-1 border border-card-border">
               <button
                 onClick={() => setTheme('dark')}

@@ -104,10 +104,8 @@ export function Footer() {
           <div className="bg-neutral-50 dark:bg-neutral-900/30 border border-neutral-200/60 dark:border-white/5 rounded-2xl p-8 flex flex-col justify-between space-y-6">
             <div>
               <Link href="/" className="flex items-center gap-3 group w-fit">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-blue to-brand-yellow flex items-center justify-center shadow-sm group-hover:rotate-6 transition-transform">
-                  <Boxes className="w-5 h-5 text-white" />
-                </div>
-                <span className="font-extrabold text-xl tracking-tight text-neutral-900 dark:text-white uppercase">BI4K</span>
+                <img src="/logo.png" alt="Business Intelligence 4K" className="h-10 w-auto object-contain group-hover:scale-105 transition-transform duration-500" />
+                <span className="font-extrabold text-xl tracking-tight text-neutral-900 dark:text-white uppercase">Business Intelligence 4K</span>
               </Link>
               <p className="text-neutral-500 dark:text-neutral-400 text-sm leading-relaxed mt-4 max-w-sm">
                 {slogan}
@@ -226,7 +224,7 @@ export function Footer() {
         {/* Copyright Footer Row */}
         <div className="mt-8 pt-8 border-t border-neutral-200 dark:border-white/5 flex flex-col md:flex-row justify-between items-center gap-4 text-center md:text-left">
           <p className="text-neutral-500 dark:text-neutral-400 text-xs tracking-wider uppercase font-medium">
-            © 2026 BI4K DIGITAL MANUFACTURING STUDIO. TOUS DROITS RÉSERVÉS.
+            © 2026 BUSINESS INTELLIGENCE 4K DIGITAL MANUFACTURING STUDIO. TOUS DROITS RÉSERVÉS.
           </p>
         </div>
       </div>
