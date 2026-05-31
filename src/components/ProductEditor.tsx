@@ -27,6 +27,7 @@ interface StudioLog {
 }
 
 const GOOGLE_FONTS = ["Inter", "Oswald", "Pacifico", "Playfair Display", "Bangers", "Monoton"];
+const STYLE_PRESETS = ['Anime', 'Cyberpunk', 'Minimalist', 'Vintage', 'Neon', 'Watercolor'];
 
 export default function TShirtEditor() {
   const supabase = createClient();
@@ -587,8 +588,8 @@ export default function TShirtEditor() {
           </motion.button>
         </div>
 
-        <div className="flex-grow bg-[#0d0d0f] rounded-2xl border border-white/8 shadow-2xl overflow-hidden relative flex items-center justify-center">
-          <div className="absolute inset-0 opacity-[0.04] pointer-events-none" style={{ backgroundImage: 'radial-gradient(circle, currentColor 1px, transparent 1px)', backgroundSize: '36px 36px' }} />
+        <div className="flex-grow bg-white border border-neutral-200 shadow-sm dark:bg-neutral-950 dark:border-neutral-800 dark:shadow-none rounded-2xl overflow-hidden relative flex items-center justify-center">
+          <div className="absolute inset-0 opacity-[0.04] dark:opacity-[0.02] pointer-events-none" style={{ backgroundImage: 'radial-gradient(circle, currentColor 1px, transparent 1px)', backgroundSize: '36px 36px' }} />
           <motion.div
             id="product-preview-container"
             initial={{ scale: 0.9, opacity: 0 }}
@@ -617,11 +618,11 @@ export default function TShirtEditor() {
         <motion.div
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
-          className="relative bg-[#121212] border border-white/10 rounded-xl shadow-lg p-5 overflow-hidden"
+          className="relative bg-white border border-neutral-200 shadow-sm dark:bg-neutral-950 dark:border-neutral-800 dark:shadow-none rounded-xl p-5 overflow-hidden"
         >
           {/* Progress bar */}
           {generationProgress > 0 && (
-            <div className="absolute top-0 left-0 right-0 h-[3px] bg-white/5 overflow-hidden rounded-t-xl">
+            <div className="absolute top-0 left-0 right-0 h-[3px] bg-neutral-100 dark:bg-white/5 overflow-hidden rounded-t-xl">
               <motion.div
                 className="h-full bg-gradient-to-r from-brand-blue via-brand-yellow to-brand-blue"
                 initial={{ width: '0%' }}
@@ -637,21 +638,36 @@ export default function TShirtEditor() {
               <Sparkles className="w-3 h-3" /> Vision Engine
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-[8px] font-black uppercase tracking-widest text-white/30">Cloudflare SDXL</span>
+              <span className="text-[8px] font-black uppercase tracking-widest text-neutral-500 dark:text-neutral-400">Cloudflare SDXL</span>
               <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
             </div>
           </div>
 
           {/* Prompt textarea */}
           <textarea
-            className="w-full h-28 px-4 py-3 text-sm text-white/90 bg-black/50 border border-white/20 rounded-lg outline-none resize-none transition-all placeholder:text-white/25 focus:border-brand-blue focus:ring-1 focus:ring-brand-blue"
-            placeholder="Décrivez votre design… ex: 'Dragon japonais en style encre, minimaliste sur fond blanc'"
+            className="w-full h-28 px-4 py-3 text-sm text-neutral-900 bg-neutral-50 border border-neutral-300 rounded-lg outline-none resize-none transition-all placeholder:text-neutral-400 focus:border-brand-blue focus:ring-1 focus:ring-brand-blue dark:text-white/90 dark:bg-black/50 dark:border-white/20 dark:placeholder:text-white/25"
+            placeholder="Décrivez votre design... ex: 'Dragon japonais, style encre, minimaliste'"
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
             onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey && prompt.trim()) { e.preventDefault(); generateWithCloudflareAI(); } }}
           />
-          <p className="text-[9px] text-white/25 mt-1.5 mb-4 leading-relaxed">
-            Les mots-clés <span className="text-white/40">vector art · t-shirt design · isolated</span> sont ajoutés automatiquement.
+
+          {/* Style Presets */}
+          <div className="flex flex-wrap gap-2 mt-3 mb-2">
+            {STYLE_PRESETS.map((style) => (
+              <button
+                key={style}
+                type="button"
+                onClick={() => setPrompt((prev) => (prev ? `${prev}, ${style}` : style))}
+                className="text-[10px] px-3 py-1 rounded-full cursor-pointer transition-colors border bg-neutral-100 border-neutral-200 text-neutral-700 hover:bg-neutral-200 dark:bg-neutral-800/50 dark:border-neutral-700 dark:text-neutral-300 dark:hover:bg-neutral-700 font-black uppercase tracking-tight"
+              >
+                {style}
+              </button>
+            ))}
+          </div>
+
+          <p className="text-[9px] text-neutral-500 dark:text-neutral-400 mt-1.5 mb-4 leading-relaxed">
+            Les mots-clés <span className="text-neutral-700 dark:text-white/40 font-bold">vector art · t-shirt design · isolated</span> sont ajoutés automatiquement.
           </p>
 
           {/* Generate button */}
@@ -663,7 +679,7 @@ export default function TShirtEditor() {
             className={`w-full py-3 rounded-lg font-bold text-sm tracking-wide transition-all flex items-center justify-center gap-2 ${isGenerating
                 ? 'bg-brand-blue/50 text-white/70 cursor-wait'
                 : !prompt.trim()
-                  ? 'bg-white/5 text-white/20 cursor-not-allowed border border-white/10'
+                  ? 'bg-neutral-100 text-neutral-400 dark:bg-white/5 dark:text-white/20 cursor-not-allowed border border-neutral-200 dark:border-white/10'
                   : 'bg-brand-blue text-white hover:bg-brand-blue/90 shadow-lg shadow-brand-blue/20'
               }`}
           >
@@ -675,71 +691,36 @@ export default function TShirtEditor() {
           </motion.button>
         </motion.div>
 
-        {/* ── Studio Log Card ─── */}
-        <motion.div
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.1 }}
-          className="bg-[#121212] border border-white/10 rounded-xl shadow-lg p-5 h-36 flex flex-col overflow-hidden"
-        >
-          <div className="flex items-center gap-2 mb-3 border-b border-white/8 pb-2.5">
-            <Terminal className="w-3.5 h-3.5 text-brand-blue" />
-            <span className="text-[9px] font-black uppercase tracking-[0.35em] text-white/30">Studio Log</span>
-          </div>
-          <div className="flex-grow overflow-y-auto space-y-1.5">
-            <AnimatePresence initial={false}>
-              {studioLogs.length === 0 && (
-                <p className="text-[9px] text-white/20 font-mono italic">En attente d&apos;activité…</p>
-              )}
-              {studioLogs.map(log => (
-                <motion.div
-                  key={log.id}
-                  initial={{ opacity: 0, x: -8 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  className="flex gap-3 text-[9px] font-mono"
-                >
-                  <span className="text-white/20 flex-shrink-0">[{log.time}]</span>
-                  <span className={`truncate ${log.type === 'success' ? 'text-emerald-400' :
-                      log.type === 'error' ? 'text-red-400' :
-                        log.type === 'ai' ? 'text-brand-blue' :
-                          'text-white/35'
-                    }`}>{log.message}</span>
-                </motion.div>
-              ))}
-            </AnimatePresence>
-          </div>
-        </motion.div>
-
         {/* ── Order Summary Card ─── */}
         <motion.div
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.2 }}
-          className="bg-[#121212] border border-white/10 rounded-xl shadow-lg p-5"
+          transition={{ delay: 0.1 }}
+          className="bg-white border border-neutral-200 shadow-sm dark:bg-neutral-950 dark:border-neutral-800 dark:shadow-none rounded-xl p-5"
         >
-          <p className="text-[9px] font-black uppercase tracking-[0.35em] text-white/30 mb-4">Résumé de commande</p>
+          <p className="text-[9px] font-black uppercase tracking-[0.35em] text-neutral-500 dark:text-neutral-400 mb-4">Résumé de commande</p>
 
           {/* Quantity */}
           <div className="flex items-center justify-between mb-4">
-            <span className="text-xs text-white/50 font-medium">Quantité</span>
-            <div className="flex items-center gap-2 bg-white/5 border border-white/10 rounded-lg p-1">
-              <button onClick={() => setQuantity(q => Math.max(1, q - 1))} className="w-7 h-7 rounded-md hover:bg-white/10 flex items-center justify-center transition-colors font-bold text-sm text-white/80">−</button>
-              <span className="w-8 text-center font-black text-sm text-white">{quantity}</span>
-              <button onClick={() => setQuantity(q => q + 1)} className="w-7 h-7 rounded-md hover:bg-white/10 flex items-center justify-center transition-colors font-bold text-sm text-white/80">+</button>
+            <span className="text-xs text-neutral-600 dark:text-neutral-300 font-medium">Quantité</span>
+            <div className="flex items-center gap-2 bg-neutral-100 border border-neutral-200 dark:bg-white/5 dark:border-white/10 rounded-lg p-1">
+              <button onClick={() => setQuantity(q => Math.max(1, q - 1))} className="w-7 h-7 rounded-md hover:bg-neutral-200 dark:hover:bg-white/10 flex items-center justify-center transition-colors font-bold text-sm text-neutral-700 dark:text-white/80">−</button>
+              <span className="w-8 text-center font-black text-sm text-neutral-900 dark:text-white">{quantity}</span>
+              <button onClick={() => setQuantity(q => q + 1)} className="w-7 h-7 rounded-md hover:bg-neutral-200 dark:hover:bg-white/10 flex items-center justify-center transition-colors font-bold text-sm text-neutral-700 dark:text-white/80">+</button>
             </div>
           </div>
 
           {/* Price */}
-          <div className="flex items-baseline justify-between border-t border-white/8 pt-4">
-            <span className="text-xs text-white/40 font-medium">Total</span>
+          <div className="flex items-baseline justify-between border-t border-neutral-200 dark:border-white/8 pt-4">
+            <span className="text-xs text-neutral-500 dark:text-neutral-400 font-medium">Total</span>
             <div className="text-right">
               {hasValidDiscount ? (
                 <>
                   <span className="block text-xs font-bold text-neutral-500 line-through mb-1">{(originalPrice * quantity) % 1 === 0 ? (originalPrice * quantity) : (originalPrice * quantity).toFixed(2)} MAD</span>
-                  <span className="text-3xl font-black tracking-tight text-red-500">{(currentPrice * quantity) % 1 === 0 ? (currentPrice * quantity) : (currentPrice * quantity).toFixed(2)} <span className="text-base font-bold text-red-500/60">MAD</span></span>
+                  <span className="text-3xl font-black tracking-tight text-red-600 dark:text-red-500">{(currentPrice * quantity) % 1 === 0 ? (currentPrice * quantity) : (currentPrice * quantity).toFixed(2)} <span className="text-base font-bold text-red-600/60 dark:text-red-500/60">MAD</span></span>
                 </>
               ) : (
-                <span className="text-3xl font-black tracking-tight text-brand-yellow">{currentPrice * quantity} <span className="text-base font-bold text-brand-yellow/60">MAD</span></span>
+                <span className="text-3xl font-black tracking-tight text-neutral-900 dark:text-brand-yellow">{(currentPrice * quantity) % 1 === 0 ? (currentPrice * quantity) : (currentPrice * quantity).toFixed(2)} <span className="text-base font-bold text-neutral-500 dark:text-brand-yellow/60">MAD</span></span>
               )}
             </div>
           </div>
@@ -760,17 +741,17 @@ export default function TShirtEditor() {
         {/* Choice Confirmation Modal */}
         {showToast && (
           <div className="fixed inset-0 bg-black/60 backdrop-blur-md z-50 flex items-center justify-center p-4">
-            <div className="bg-[#111116] border border-white/10 rounded-[2.5rem] p-8 max-w-md w-full shadow-2xl text-center animate-reveal">
+            <div className="bg-white border border-neutral-200 dark:bg-[#111116] dark:border-white/10 rounded-[2.5rem] p-8 max-w-md w-full shadow-2xl text-center animate-reveal">
               <div className="w-16 h-16 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center mx-auto mb-6 animate-pulse">
-                <Sparkles className="w-8 h-8 text-emerald-400" />
+                <Sparkles className="w-8 h-8 text-emerald-500 dark:text-emerald-400" />
               </div>
-              <h3 className="text-2xl font-black uppercase tracking-tighter text-white mb-2">Produit ajouté au panier !</h3>
-              <p className="text-slate-400 text-xs font-bold uppercase tracking-wider mb-8">Votre création a été enregistrée avec succès.</p>
+              <h3 className="text-2xl font-black uppercase tracking-tighter text-neutral-900 dark:text-white mb-2">Produit ajouté au panier !</h3>
+              <p className="text-neutral-500 dark:text-slate-400 text-xs font-bold uppercase tracking-wider mb-8">Votre création a été enregistrée avec succès.</p>
 
               <div className="flex flex-col sm:flex-row gap-4">
                 <button
                   onClick={() => { setShowToast(false); router.push('/categories'); }}
-                  className="flex-grow py-4 bg-white/5 border border-white/10 hover:bg-white/10 rounded-2xl font-black text-[10px] uppercase tracking-widest text-slate-300 transition-all hover:scale-[1.02] active:scale-[0.98]"
+                  className="flex-grow py-4 bg-neutral-100 border border-neutral-200 hover:bg-neutral-200 dark:bg-white/5 dark:border-white/10 dark:hover:bg-white/10 rounded-2xl font-black text-[10px] uppercase tracking-widest text-neutral-700 dark:text-slate-300 transition-all hover:scale-[1.02] active:scale-[0.98]"
                 >
                   Continuer les achats
                 </button>
