@@ -27,7 +27,7 @@ export default function SignupPage() {
   const { lang, showToast } = useApp();
   const t = translations[lang];
   const router = useRouter();
-  const { signUp } = useAuth();
+  const { signUp, signOut } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
@@ -47,12 +47,15 @@ export default function SignupPage() {
       }
       setAuthError(message);
     } else {
+      // Explicitly sign out right after creation to prevent Supabase's auto-login session creation
+      await signOut();
+
       if (requiresConfirmation) {
         showToast(lang === 'fr' ? 'Compte créé ! Veuillez confirmer votre e-mail.' : 'Account created! Please check your email.', 'success');
         setSuccess(true);
         setTimeout(() => router.push('/login'), 4000);
       } else {
-        showToast(lang === 'fr' ? 'Compte créé avec succès !' : 'Account successfully created!', 'success');
+        showToast(lang === 'fr' ? 'Compte créé avec succès ! Veuillez vous connecter.' : 'Account successfully created! Please log in.', 'success');
         setSuccess(true);
         setTimeout(() => router.push('/login'), 2000);
       }
