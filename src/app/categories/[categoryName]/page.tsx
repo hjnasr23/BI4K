@@ -27,6 +27,25 @@ interface Product {
 }
 
 const COLOR_MAP: Record<string, string> = {
+  // French color names (from database)
+  'noir': '#000000',
+  'noir mat': '#121212',
+  'blanc': '#ffffff',
+  'gris': '#888888',
+  'jaune': '#facc15',
+  'bleu nuit': '#1e3a8a',
+  'bleu': '#3b82f6',
+  'beige': '#f5f5dc',
+  'argenté': '#c0c0c0',
+  'argent': '#cbd5e1',
+  'rouge': '#ef4444',
+  'vert': '#22c55e',
+  'rose': '#ec4899',
+  'orange': '#f97316',
+  'violet': '#a855f7',
+  'marron': '#78350f',
+  'or': '#fbbf24',
+  // English color names (fallback)
   black: '#000000',
   white: '#ffffff',
   navy: '#1e3a8a',
@@ -43,11 +62,14 @@ const COLOR_MAP: Record<string, string> = {
   heather: '#9ca3af',
   forest: '#064e3b',
   royal: '#2563eb',
+  brown: '#78350f',
+  purple: '#a855f7',
+  silver: '#cbd5e1',
 };
 
-const getColorHex = (colorName: string) => {
+const getColorHex = (colorName: string): string => {
   const norm = colorName.toLowerCase().trim();
-  return COLOR_MAP[norm] || norm;
+  return COLOR_MAP[norm] || '#333333';
 };
 
 /* ─────────── ProductCard Component ─────────── */
@@ -67,9 +89,9 @@ const ProductCard = ({ product, lang, profile }: { product: Product; lang: strin
 
   // Calculate dynamic sale values
   const now = new Date();
-  const isSaleActive = 
-    product.sale_price !== null && 
-    product.sale_ends_at !== null && 
+  const isSaleActive =
+    product.sale_price !== null &&
+    product.sale_ends_at !== null &&
     new Date(product.sale_ends_at) > now;
 
   const hasValidDiscount = profile?.discount_rate > 0 && profile?.discount_expires_at && new Date(profile.discount_expires_at) > now;
@@ -96,24 +118,24 @@ const ProductCard = ({ product, lang, profile }: { product: Product; lang: strin
   };
 
   return (
-    <div 
+    <div
       className="group relative"
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
       <div className="absolute -inset-4 bg-gradient-to-tr from-brand-blue/20 to-brand-yellow/20 rounded-[2.5rem] blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
-      
+
       <div className="relative rounded-[2rem] bg-card-bg border border-card-border overflow-hidden group-hover:border-brand-blue/50 transition-all duration-500 shadow-2xl bg-[#111116] flex flex-col h-full">
         <Link href={`/products/${product.slug}`}>
           <div className="aspect-[4/5] relative overflow-hidden bg-background/50 p-8 flex items-center justify-center cursor-pointer">
             {/* Image with transition crossfade */}
-            <img 
-              src={activeImage || "https://placehold.co/400x400/222/FFF?text=No+Image"} 
+            <img
+              src={activeImage || "https://placehold.co/400x400/222/FFF?text=No+Image"}
               alt={product.name}
               className="w-full h-full object-contain transition-all duration-500 ease-out drop-shadow-2xl"
             />
             <div className="absolute inset-0 bg-brand-blue/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
-            
+
             {/* Sale Ends Countdown badge */}
             {isSaleActive && countdownText && (
               <div className="absolute top-4 left-4 bg-amber-500/90 text-[#111116] text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-xl shadow-lg border border-amber-400/20 backdrop-blur-md animate-pulse z-20">
@@ -122,7 +144,7 @@ const ProductCard = ({ product, lang, profile }: { product: Product; lang: strin
             )}
           </div>
         </Link>
-        
+
         <div className="p-6 flex flex-col justify-between flex-grow">
           <div className="flex justify-between items-start gap-4">
             <Link href={`/products/${product.slug}`} className="hover:text-brand-yellow transition-colors flex-1">
@@ -130,7 +152,7 @@ const ProductCard = ({ product, lang, profile }: { product: Product; lang: strin
                 {product.name}
               </h3>
             </Link>
-            
+
             {/* Pricing logic (MAD) */}
             <div className="text-right flex-shrink-0">
               {hasValidDiscount ? (
@@ -152,10 +174,10 @@ const ProductCard = ({ product, lang, profile }: { product: Product; lang: strin
               )}
             </div>
           </div>
-          
+
           {/* Prominent CTA button */}
-          <Link 
-            href={`/products/${product.slug}`} 
+          <Link
+            href={`/products/${product.slug}`}
             className="mt-5 w-full py-3.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-center text-xs font-black uppercase tracking-widest transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-blue-500/20 flex items-center justify-center gap-2 group-hover:shadow-blue-500/30"
           >
             <Sparkles className="w-3.5 h-3.5" />
@@ -172,7 +194,7 @@ export default function CategoryDetailsPage() {
   const { lang, profile } = useApp();
   const t = translations[lang];
   const pathname = usePathname();
-  
+
   const categorySlug = pathname.split('/').pop() || '';
   const resolvedSlug = categorySlug;
 
@@ -216,13 +238,13 @@ export default function CategoryDetailsPage() {
 
   /* Toggle Handlers */
   const toggleSize = (size: string) => {
-    setSelectedSizes(prev => 
+    setSelectedSizes(prev =>
       prev.includes(size) ? prev.filter(s => s !== size) : [...prev, size]
     );
   };
 
   const toggleColor = (color: string) => {
-    setSelectedColors(prev => 
+    setSelectedColors(prev =>
       prev.includes(color) ? prev.filter(c => c !== color) : [...prev, color]
     );
   };
@@ -247,7 +269,7 @@ export default function CategoryDetailsPage() {
     // 1. Color filter
     if (selectedColors.length > 0) {
       const productColors = product.colors || [];
-      const hasIntersectingColor = productColors.some(c => 
+      const hasIntersectingColor = productColors.some(c =>
         selectedColors.some(sc => sc.toLowerCase() === c.toLowerCase())
       );
       if (!hasIntersectingColor) return false;
@@ -256,7 +278,7 @@ export default function CategoryDetailsPage() {
     // 2. Size filter
     if (selectedSizes.length > 0) {
       const productSizes = product.sizes || [];
-      const hasIntersectingSize = productSizes.some(s => 
+      const hasIntersectingSize = productSizes.some(s =>
         selectedSizes.some(ss => ss.toLowerCase() === s.toLowerCase())
       );
       if (!hasIntersectingSize) return false;
@@ -288,22 +310,22 @@ export default function CategoryDetailsPage() {
       <main className="container mx-auto px-4 pt-32 pb-16 flex-grow relative z-10">
         {/* Header Section */}
         <div className="mb-12 animate-reveal">
-           <Link href="/categories" className="inline-flex items-center gap-2 text-xs font-black uppercase tracking-widest text-neutral-400 hover:text-white transition-colors mb-8 group">
-             <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-             {lang === 'fr' ? 'Retour aux catégories' : 'Back to Categories'}
-           </Link>
-           
-           <div className="flex flex-col md:flex-row md:items-end justify-between gap-10">
-              <div className="max-w-3xl">
-                 <h1 className="text-4xl md:text-5xl font-black tracking-tight text-white uppercase">
-                   {categoryName || resolvedSlug.replace('-', ' ')}
-                 </h1>
-              </div>
-           </div>
+          <Link href="/categories" className="inline-flex items-center gap-2 text-xs font-black uppercase tracking-widest text-neutral-400 hover:text-white transition-colors mb-8 group">
+            <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+            {lang === 'fr' ? 'Retour aux catégories' : 'Back to Categories'}
+          </Link>
+
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-10">
+            <div className="max-w-3xl">
+              <h1 className="text-4xl md:text-5xl font-black tracking-tight text-white uppercase">
+                {categoryName || resolvedSlug.replace('-', ' ')}
+              </h1>
+            </div>
+          </div>
         </div>
 
         <div className="flex flex-col lg:flex-row gap-12 mt-8">
-          
+
           {/* Left Sidebar - Filters */}
           <aside className="w-full lg:w-72 flex-shrink-0 hidden lg:block">
             <div className="sticky top-32 space-y-2">
@@ -325,11 +347,11 @@ export default function CategoryDetailsPage() {
                       return (
                         <label key={size} className="flex items-center gap-4 cursor-pointer group" onClick={() => toggleSize(size)}>
                           <div className="relative flex items-center justify-center">
-                            <input 
-                              type="checkbox" 
+                            <input
+                              type="checkbox"
                               checked={isSelected}
-                              onChange={() => {}}
-                              className="peer appearance-none w-5 h-5 rounded-lg border-2 border-white/10 bg-white/5 checked:bg-brand-blue checked:border-brand-blue transition-all cursor-pointer" 
+                              onChange={() => { }}
+                              className="peer appearance-none w-5 h-5 rounded-lg border-2 border-white/10 bg-white/5 checked:bg-brand-blue checked:border-brand-blue transition-all cursor-pointer"
                             />
                             <div className={`absolute w-2 h-2 bg-white rounded-sm transition-opacity pointer-events-none ${isSelected ? 'opacity-100' : 'opacity-0'}`} />
                           </div>
@@ -351,14 +373,16 @@ export default function CategoryDetailsPage() {
                   <div className="grid grid-cols-5 gap-3">
                     {uniqueColors.map(colorName => {
                       const isSelected = selectedColors.includes(colorName);
+                      const hexColor = getColorHex(colorName);
+                      const isWhite = colorName.toLowerCase().trim() === 'blanc' || colorName.toLowerCase().trim() === 'white';
                       return (
-                        <button 
-                          key={colorName} 
+                        <button
+                          key={colorName}
                           type="button"
                           onClick={() => toggleColor(colorName)}
                           title={colorName}
-                          className={`w-8 h-8 rounded-full border-2 transition-all shadow-lg active:scale-90 relative ${isSelected ? 'border-brand-blue scale-110' : 'border-white/10 hover:border-white/40 hover:scale-105'}`}
-                          style={{ backgroundColor: getColorHex(colorName) }}
+                          className={`w-8 h-8 rounded-full border-2 transition-all shadow-lg active:scale-90 relative ${isSelected ? 'border-brand-blue scale-110' : isWhite ? 'border-neutral-700 hover:border-neutral-500 hover:scale-105' : 'border-white/10 hover:border-white/40 hover:scale-105'}`}
+                          style={{ backgroundColor: hexColor }}
                         >
                           {isSelected && (
                             <span className="absolute inset-0 flex items-center justify-center text-[10px] font-black text-white mix-blend-difference">✓</span>
@@ -369,8 +393,8 @@ export default function CategoryDetailsPage() {
                   </div>
                 </div>
               )}
-              
-              <button 
+
+              <button
                 type="button"
                 onClick={resetAllFilters}
                 className="w-full py-4 mt-10 rounded-2xl bg-white/5 border border-white/10 font-black text-[10px] uppercase tracking-widest hover:bg-white/10 transition-all text-slate-300"

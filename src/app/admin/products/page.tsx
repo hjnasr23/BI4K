@@ -49,22 +49,31 @@ interface Product {
 const getColorHex = (colorName: string): string | null => {
   const name = colorName.toLowerCase().trim();
   const colors: Record<string, string> = {
-    noir: '#000000', black: '#000000',
-    blanc: '#ffffff', white: '#ffffff',
-    rouge: '#ef4444', red: '#ef4444',
-    bleu: '#3b82f6', blue: '#3b82f6',
-    vert: '#22c55e', green: '#22c55e',
-    jaune: '#eab308', yellow: '#eab308',
-    rose: '#ec4899', pink: '#ec4899',
-    gris: '#6b7280', gray: '#6b7280', grey: '#6b7280',
+    // French color names (from database)
+    noir: '#000000', 'noir mat': '#121212',
+    blanc: '#ffffff',
+    rouge: '#ef4444',
+    bleu: '#3b82f6', 'bleu nuit': '#1e3a8a',
+    vert: '#22c55e',
+    jaune: '#facc15',
+    rose: '#ec4899',
+    gris: '#888888',
     orange: '#f97316',
-    violet: '#a855f7', purple: '#a855f7',
-    marron: '#78350f', brown: '#78350f',
-    gold: '#fbbf24', or: '#fbbf24',
-    argent: '#cbd5e1', silver: '#cbd5e1',
-    navy: '#1e3a8a', beige: '#f5f5dc'
+    violet: '#a855f7',
+    marron: '#78350f',
+    or: '#fbbf24',
+    argent: '#cbd5e1', 'argenté': '#c0c0c0',
+    beige: '#f5f5dc',
+    // English color names (fallback)
+    black: '#000000', white: '#ffffff',
+    red: '#ef4444', blue: '#3b82f6',
+    green: '#22c55e', yellow: '#eab308',
+    pink: '#ec4899', gray: '#6b7280', grey: '#6b7280',
+    purple: '#a855f7', brown: '#78350f',
+    gold: '#fbbf24', silver: '#cbd5e1',
+    navy: '#1e3a8a',
   };
-  return colors[name] || null;
+  return colors[name] || '#333333';
 };
 
 /* ─────────── Component ─────────── */
