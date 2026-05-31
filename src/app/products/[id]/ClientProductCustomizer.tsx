@@ -52,7 +52,7 @@ export default function ClientProductCustomizer({ product }: { product: any }) {
         <button 
           type="button"
           onClick={() => router.back()} 
-          className="inline-flex items-center gap-2 text-xs font-black uppercase tracking-widest text-neutral-400 hover:text-white transition-colors group"
+          className="inline-flex items-center gap-2 text-xs font-black uppercase tracking-widest text-neutral-700 dark:text-neutral-300 hover:text-neutral-950 dark:hover:text-white transition-colors group"
         >
           <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform duration-300" />
           {lang === 'fr' ? 'Retour au catalogue' : 'Back to Catalog'}
@@ -62,7 +62,7 @@ export default function ClientProductCustomizer({ product }: { product: any }) {
       <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 items-start animate-reveal">
         
         {/* Left: Product Image */}
-        <div className="relative aspect-[4/5] w-full rounded-[3rem] bg-[#111116] border border-white/5 shadow-2xl overflow-hidden flex items-center justify-center p-8">
+        <div className="relative aspect-[4/5] w-full rounded-[3rem] bg-neutral-50 dark:bg-[#111116] border border-neutral-200 dark:border-white/5 shadow-2xl overflow-hidden flex items-center justify-center p-8">
           <img 
             src={mainImage} 
             alt={product.name} 
@@ -78,7 +78,7 @@ export default function ClientProductCustomizer({ product }: { product: any }) {
         {/* Right: Product Details & Options */}
         <div className="flex flex-col space-y-8">
           <div>
-            <h1 className="text-4xl md:text-5xl font-black uppercase tracking-tighter text-white mb-4 leading-none">
+            <h1 className="text-4xl md:text-5xl font-black uppercase tracking-tighter text-neutral-900 dark:text-white mb-4 leading-none">
               {product.name}
             </h1>
             
@@ -87,23 +87,23 @@ export default function ClientProductCustomizer({ product }: { product: any }) {
               {hasValidDiscount ? (
                 <>
                   <span className="text-3xl font-black text-red-500">{(finalPrice % 1 === 0 ? finalPrice : finalPrice.toFixed(2))} MAD</span>
-                  <span className="text-lg font-bold text-gray-500 line-through">{product.price} MAD</span>
+                  <span className="text-lg font-bold text-neutral-500 line-through">{product.price} MAD</span>
                 </>
               ) : isSaleActive ? (
                 <>
-                  <span className="text-3xl font-black text-green-400">{product.sale_price} MAD</span>
-                  <span className="text-lg font-bold text-gray-500 line-through">{product.price} MAD</span>
+                  <span className="text-3xl font-black text-green-600 dark:text-green-400">{product.sale_price} MAD</span>
+                  <span className="text-lg font-bold text-neutral-500 line-through">{product.price} MAD</span>
                 </>
               ) : (
-                <span className="text-3xl font-black text-brand-yellow">{product.price} MAD</span>
+                <span className="text-3xl font-black text-neutral-900 dark:text-brand-yellow">{product.price} MAD</span>
               )}
             </div>
           </div>
-
+ 
           {/* Description with refined elegant typography */}
           {product.description && (
-            <div className="border-t border-white/5 pt-6">
-              <p className="text-neutral-400 text-sm leading-relaxed font-medium tracking-wide">
+            <div className="border-t border-neutral-200 dark:border-white/5 pt-6">
+              <p className="text-neutral-600 dark:text-neutral-300 text-sm leading-relaxed font-medium tracking-wide">
                 {product.description}
               </p>
             </div>
@@ -111,8 +111,8 @@ export default function ClientProductCustomizer({ product }: { product: any }) {
 
           {/* Interactive Color Selection */}
           {product.colors && product.colors.length > 0 && (
-            <div className="border-t border-white/5 pt-6">
-              <label className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-slate-500 mb-3">
+            <div className="border-t border-neutral-200 dark:border-white/5 pt-6">
+              <label className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-neutral-500 dark:text-neutral-400 mb-3">
                 <Palette className="w-4 h-4 text-brand-yellow" /> {lang === 'fr' ? 'Couleur / Color' : 'Color / Color'}
               </label>
               <div className="flex flex-wrap gap-3">
@@ -123,10 +123,10 @@ export default function ClientProductCustomizer({ product }: { product: any }) {
                       key={colorName}
                       type="button"
                       onClick={() => setSelectedColor(colorName)}
-                      className={`px-5 py-2.5 rounded-2xl text-xs font-black uppercase tracking-widest border-2 transition-all duration-300 ${
+                      className={`px-5 py-2.5 rounded-2xl text-xs font-black uppercase tracking-widest transition-all duration-300 ${
                         isSelected 
-                          ? 'border-white bg-white text-black shadow-lg shadow-white/10 scale-105' 
-                          : 'border-white/10 bg-white/5 hover:border-white/20 text-slate-300'
+                          ? 'border-neutral-950 bg-neutral-950 text-white dark:border-white dark:bg-white dark:text-black scale-105 shadow-lg shadow-neutral-950/10 dark:shadow-white/10' 
+                          : 'border border-neutral-300 text-neutral-900 bg-transparent dark:border-neutral-800 dark:text-neutral-300 hover:border-neutral-950 dark:hover:border-neutral-100'
                       }`}
                     >
                       {colorName}
@@ -139,8 +139,8 @@ export default function ClientProductCustomizer({ product }: { product: any }) {
 
           {/* Interactive Size Selection */}
           {product.sizes && product.sizes.length > 0 && (
-            <div className="border-t border-white/5 pt-6">
-              <label className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-slate-500 mb-3">
+            <div className="border-t border-neutral-200 dark:border-white/5 pt-6">
+              <label className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-neutral-500 dark:text-neutral-400 mb-3">
                 <Ruler className="w-4 h-4 text-brand-yellow" /> {lang === 'fr' ? 'Taille / Size *' : 'Size / Size *'}
               </label>
               <div className="flex flex-wrap gap-3">
@@ -154,10 +154,10 @@ export default function ClientProductCustomizer({ product }: { product: any }) {
                         setSelectedSize(size);
                         setError(null);
                       }}
-                      className={`px-6 py-3.5 rounded-2xl font-black uppercase text-xs tracking-widest border-2 transition-all duration-300 ${
+                      className={`px-6 py-3.5 rounded-2xl font-black uppercase text-xs tracking-widest transition-all duration-300 ${
                         isSelected 
-                          ? 'border-white bg-white text-black scale-105 shadow-lg shadow-white/10' 
-                          : 'border-white/10 bg-white/5 hover:border-white/20 hover:bg-white/10 text-slate-300'
+                          ? 'border-neutral-950 bg-neutral-950 text-white dark:border-white dark:bg-white dark:text-black scale-105 shadow-lg shadow-neutral-950/10 dark:shadow-white/10' 
+                          : 'border border-neutral-300 text-neutral-900 bg-transparent dark:border-neutral-800 dark:text-neutral-300 hover:border-neutral-950 dark:hover:border-neutral-100'
                       }`}
                     >
                       {size}
@@ -177,13 +177,13 @@ export default function ClientProductCustomizer({ product }: { product: any }) {
           )}
 
           {/* Action buttons with polished premium transitions */}
-          <div className="pt-6 border-t border-white/5 flex flex-col sm:flex-row gap-4">
+          <div className="pt-6 border-t border-neutral-200 dark:border-white/5 flex flex-col sm:flex-row gap-4">
             <button
               type="button"
               onClick={() => handleCustomize('upload')}
-              className="flex-1 py-5 rounded-2xl bg-white/5 hover:bg-white/10 text-white border border-white/10 font-black text-xs uppercase tracking-[0.2em] shadow-2xl transition-all duration-300 flex items-center justify-center gap-2 hover:scale-105 active:scale-95"
+              className="flex-1 py-5 rounded-2xl font-black text-xs uppercase tracking-[0.2em] shadow-2xl transition-all duration-300 flex items-center justify-center gap-2 hover:scale-105 active:scale-95 border border-neutral-950 text-neutral-950 bg-transparent hover:bg-neutral-50 dark:border-neutral-800 dark:text-white dark:hover:bg-neutral-900"
             >
-              <Upload className="w-4 h-4 text-slate-400" />
+              <Upload className="w-4 h-4 text-neutral-900 dark:text-white" />
               Upload Design
             </button>
             <button

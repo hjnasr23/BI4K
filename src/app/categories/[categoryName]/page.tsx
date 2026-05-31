@@ -7,7 +7,7 @@ import { useApp } from "@/lib/store";
 import { translations } from "@/lib/translations";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
-import { Loader2, Sparkles, Search, Filter, Boxes, ArrowLeft } from "lucide-react";
+import { Loader2, Sparkles, Search, Filter, Boxes, ArrowLeft, Check } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 
 interface Product {
@@ -125,9 +125,9 @@ const ProductCard = ({ product, lang, profile }: { product: Product; lang: strin
     >
       <div className="absolute -inset-4 bg-gradient-to-tr from-brand-blue/20 to-brand-yellow/20 rounded-[2.5rem] blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
 
-      <div className="relative rounded-[2rem] bg-card-bg border border-card-border overflow-hidden group-hover:border-brand-blue/50 transition-all duration-500 shadow-2xl bg-[#111116] flex flex-col h-full">
+      <div className="relative rounded-[2rem] bg-card-bg border border-card-border overflow-hidden group-hover:border-brand-blue/50 transition-all duration-500 shadow-2xl bg-white dark:bg-[#111116] flex flex-col h-full">
         <Link href={`/products/${product.slug}`}>
-          <div className="aspect-[4/5] relative overflow-hidden bg-background/50 p-8 flex items-center justify-center cursor-pointer">
+          <div className="aspect-[4/5] relative overflow-hidden bg-neutral-50 dark:bg-background/50 p-8 flex items-center justify-center cursor-pointer">
             {/* Image with transition crossfade */}
             <img
               src={activeImage || "https://placehold.co/400x400/222/FFF?text=No+Image"}
@@ -148,7 +148,7 @@ const ProductCard = ({ product, lang, profile }: { product: Product; lang: strin
         <div className="p-6 flex flex-col justify-between flex-grow">
           <div className="flex justify-between items-start gap-4">
             <Link href={`/products/${product.slug}`} className="hover:text-brand-yellow transition-colors flex-1">
-              <h3 className="font-extrabold text-base leading-tight uppercase tracking-tight text-neutral-100 group-hover:text-brand-yellow transition-colors line-clamp-1">
+              <h3 className="font-extrabold text-base leading-tight uppercase tracking-tight text-neutral-900 dark:text-white group-hover:text-brand-yellow transition-colors line-clamp-1">
                 {product.name}
               </h3>
             </Link>
@@ -166,11 +166,11 @@ const ProductCard = ({ product, lang, profile }: { product: Product; lang: strin
                 </div>
               ) : isSaleActive ? (
                 <div className="flex flex-col items-end">
-                  <span className="text-sm font-black text-green-400">{product.sale_price} MAD</span>
+                  <span className="text-sm font-black text-green-600 dark:text-green-400">{product.sale_price} MAD</span>
                   <span className="text-[10px] font-bold text-neutral-500 line-through mt-0.5">{product.price} MAD</span>
                 </div>
               ) : (
-                <span className="text-sm font-black text-brand-yellow">{product.price} MAD</span>
+                <span className="text-sm font-black text-neutral-900 dark:text-white">{product.price} MAD</span>
               )}
             </div>
           </div>
@@ -310,14 +310,14 @@ export default function CategoryDetailsPage() {
       <main className="container mx-auto px-4 pt-32 pb-16 flex-grow relative z-10">
         {/* Header Section */}
         <div className="mb-12 animate-reveal">
-          <Link href="/categories" className="inline-flex items-center gap-2 text-xs font-black uppercase tracking-widest text-neutral-400 hover:text-white transition-colors mb-8 group">
+          <Link href="/categories" className="inline-flex items-center gap-2 text-xs font-black uppercase tracking-widest text-neutral-400 hover:text-neutral-900 dark:hover:text-white transition-colors mb-8 group">
             <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
             {lang === 'fr' ? 'Retour aux catégories' : 'Back to Categories'}
           </Link>
 
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-10">
             <div className="max-w-3xl">
-              <h1 className="text-4xl md:text-5xl font-black tracking-tight text-white uppercase">
+              <h1 className="text-4xl md:text-5xl font-black tracking-tight text-neutral-900 dark:text-white uppercase">
                 {categoryName || resolvedSlug.replace('-', ' ')}
               </h1>
             </div>
@@ -351,11 +351,11 @@ export default function CategoryDetailsPage() {
                               type="checkbox"
                               checked={isSelected}
                               onChange={() => { }}
-                              className="peer appearance-none w-5 h-5 rounded-lg border-2 border-white/10 bg-white/5 checked:bg-brand-blue checked:border-brand-blue transition-all cursor-pointer"
+                              className="peer appearance-none w-5 h-5 rounded-lg border border-neutral-400 dark:border-neutral-700 bg-white/5 checked:bg-brand-blue checked:border-brand-blue transition-all cursor-pointer"
                             />
-                            <div className={`absolute w-2 h-2 bg-white rounded-sm transition-opacity pointer-events-none ${isSelected ? 'opacity-100' : 'opacity-0'}`} />
+                            <Check className={`absolute w-3.5 h-3.5 text-neutral-900 dark:text-white transition-opacity pointer-events-none ${isSelected ? 'opacity-100' : 'opacity-0'}`} />
                           </div>
-                          <span className={`text-xs font-black uppercase tracking-widest transition-colors ${isSelected ? 'text-foreground' : 'text-foreground/40 group-hover:text-foreground'}`}>{size}</span>
+                          <span className={`text-xs font-black uppercase tracking-widest transition-colors ${isSelected ? 'text-neutral-900 dark:text-neutral-100' : 'text-neutral-500 dark:text-neutral-400 group-hover:text-neutral-900 dark:group-hover:text-neutral-100'}`}>{size}</span>
                         </label>
                       );
                     })}
@@ -381,7 +381,7 @@ export default function CategoryDetailsPage() {
                           type="button"
                           onClick={() => toggleColor(colorName)}
                           title={colorName}
-                          className={`w-8 h-8 rounded-full border-2 transition-all shadow-lg active:scale-90 relative ${isSelected ? 'border-brand-blue scale-110' : isWhite ? 'border-neutral-700 hover:border-neutral-500 hover:scale-105' : 'border-white/10 hover:border-white/40 hover:scale-105'}`}
+                          className={`w-8 h-8 rounded-full border-2 transition-all shadow-lg active:scale-90 relative ${isSelected ? 'border-brand-blue scale-110' : isWhite ? 'border-neutral-400 dark:border-neutral-700 hover:border-neutral-500 dark:hover:border-neutral-500 hover:scale-105' : 'border-neutral-300 dark:border-white/10 hover:border-neutral-500 dark:hover:border-white/40 hover:scale-105'}`}
                           style={{ backgroundColor: hexColor }}
                         >
                           {isSelected && (
@@ -397,7 +397,7 @@ export default function CategoryDetailsPage() {
               <button
                 type="button"
                 onClick={resetAllFilters}
-                className="w-full py-4 mt-10 rounded-2xl bg-white/5 border border-white/10 font-black text-[10px] uppercase tracking-widest hover:bg-white/10 transition-all text-slate-300"
+                className="w-full py-4 mt-10 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all border border-neutral-950 text-neutral-950 hover:bg-neutral-100 dark:border-neutral-800 dark:text-neutral-400 dark:hover:bg-neutral-800 bg-transparent dark:bg-white/5"
               >
                 Reset All Filters
               </button>
@@ -417,21 +417,21 @@ export default function CategoryDetailsPage() {
                   <button
                     type="button"
                     onClick={() => setSortBy('name')}
-                    className={`px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${sortBy === 'name' ? 'bg-white dark:bg-neutral-800 shadow text-neutral-900 dark:text-white' : 'text-neutral-400 hover:text-white'}`}
+                    className={`px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${sortBy === 'name' ? 'bg-white dark:bg-neutral-800 shadow text-neutral-900 dark:text-white' : 'text-neutral-400 hover:text-neutral-900 dark:hover:text-white'}`}
                   >
                     A-Z
                   </button>
                   <button
                     type="button"
                     onClick={() => setSortBy('price-asc')}
-                    className={`px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${sortBy === 'price-asc' ? 'bg-white dark:bg-neutral-800 shadow text-neutral-900 dark:text-white' : 'text-neutral-400 hover:text-white'}`}
+                    className={`px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${sortBy === 'price-asc' ? 'bg-white dark:bg-neutral-800 shadow text-neutral-900 dark:text-white' : 'text-neutral-400 hover:text-neutral-900 dark:hover:text-white'}`}
                   >
                     {lang === 'fr' ? 'Prix ↑' : 'Price ↑'}
                   </button>
                   <button
                     type="button"
                     onClick={() => setSortBy('price-desc')}
-                    className={`px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${sortBy === 'price-desc' ? 'bg-white dark:bg-neutral-800 shadow text-neutral-900 dark:text-white' : 'text-neutral-400 hover:text-white'}`}
+                    className={`px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${sortBy === 'price-desc' ? 'bg-white dark:bg-neutral-800 shadow text-neutral-900 dark:text-white' : 'text-neutral-400 hover:text-neutral-900 dark:hover:text-white'}`}
                   >
                     {lang === 'fr' ? 'Prix ↓' : 'Price ↓'}
                   </button>
@@ -454,8 +454,8 @@ export default function CategoryDetailsPage() {
                 ))}
               </div>
             ) : (
-              <div className="text-center py-32 glass rounded-[3rem] animate-reveal bg-white/5 border border-white/10 backdrop-blur-md">
-                <div className="w-20 h-20 rounded-3xl bg-white/5 border border-white/10 flex items-center justify-center mx-auto mb-8">
+              <div className="text-center py-32 glass rounded-[3rem] animate-reveal bg-neutral-50 dark:bg-white/5 border border-neutral-200 dark:border-white/10 backdrop-blur-md">
+                <div className="w-20 h-20 rounded-3xl bg-neutral-100 dark:bg-white/5 border border-neutral-200 dark:border-white/10 flex items-center justify-center mx-auto mb-8">
                   <Boxes className="w-10 h-10 text-foreground/20" />
                 </div>
                 <p className="text-2xl font-black text-foreground/40 uppercase tracking-tighter mb-8">{t.noProducts || 'AUCUN PRODUIT TROUVÉ'}</p>
