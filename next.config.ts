@@ -3,7 +3,6 @@ const repo = 'BI4K';
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  output: 'export',
   basePath: isGithubActions ? `/${repo}` : '',
   images: {
     unoptimized: true,
