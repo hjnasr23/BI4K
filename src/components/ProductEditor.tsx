@@ -330,7 +330,7 @@ export default function TShirtEditor() {
     }, 300);
 
     try {
-      const enhancedPrompt = `${prompt.trim()}, vector art, t-shirt design, isolated on pure white background, clean edges, no background noise, high contrast, print ready, Remove the entire background, making it completely transparent while preserving fine details like edges, hair, and shadows. Output as a clean PNG.`;
+      const enhancedPrompt = `${prompt.trim()}, vector art, t-shirt design, isolated on pure white background, clean edges, no background noise, high contrast, print ready`;
 
       const response = await fetch('/api/generate-image', {
         method: 'POST',
@@ -344,7 +344,47 @@ export default function TShirtEditor() {
       }
 
       const blob = await response.blob();
-      const imageUrl = URL.createObjectURL(blob);
+      const rawImageUrl = URL.createObjectURL(blob);
+      
+      // Client-side background removal (Magic Wand on background color)
+      const processTransparentImage = (src: string): Promise<string> => {
+        return new Promise((resolve) => {
+          const img = new Image();
+          img.crossOrigin = "anonymous";
+          img.onload = () => {
+            const canvas = document.createElement("canvas");
+            canvas.width = img.width;
+            canvas.height = img.height;
+            const ctx = canvas.getContext("2d");
+            if (!ctx) return resolve(src);
+            
+            ctx.drawImage(img, 0, 0);
+            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            const data = imageData.data;
+            
+            // Grab top-left corner as the background reference color
+            const r = data[0];
+            const g = data[1];
+            const b = data[2];
+            const tolerance = 35; // Tolerance to remove slight gradients/noise
+            
+            for (let i = 0; i < data.length; i += 4) {
+              if (Math.abs(data[i] - r) < tolerance && 
+                  Math.abs(data[i+1] - g) < tolerance && 
+                  Math.abs(data[i+2] - b) < tolerance) {
+                data[i+3] = 0; // Make pixel transparent
+              }
+            }
+            
+            ctx.putImageData(imageData, 0, 0);
+            resolve(canvas.toDataURL("image/png"));
+          };
+          img.onerror = () => resolve(src);
+          img.src = src;
+        });
+      };
+
+      const imageUrl = await processTransparentImage(rawImageUrl);
 
       clearInterval(progressInterval);
       setGenerationProgress(100);

@@ -35,35 +35,6 @@ export async function POST(req: NextRequest) {
 
     const arrayBuffer = await response.arrayBuffer();
 
-    // Phase 2: Background Removal using bria-rmbg-1.4
-    try {
-      const rmbgUrl = `https://api.cloudflare.com/client/v4/accounts/${accountId}/ai/run/@cf/bria-ai/bria-rmbg-1.4`;
-      const imageArray = Array.from(new Uint8Array(arrayBuffer));
-      
-      const rmbgResponse = await fetch(rmbgUrl, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${apiToken}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ image: imageArray }),
-      });
-
-      if (rmbgResponse.ok) {
-        const transparentBuffer = await rmbgResponse.arrayBuffer();
-        return new Response(transparentBuffer, {
-          status: 200,
-          headers: {
-            'Content-Type': 'image/png',
-          },
-        });
-      } else {
-        console.warn('Background removal failed, returning original image', await rmbgResponse.text());
-      }
-    } catch (e) {
-      console.error('Error during background removal:', e);
-    }
-
     return new Response(arrayBuffer, {
       status: 200,
       headers: {
