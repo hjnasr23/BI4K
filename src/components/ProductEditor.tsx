@@ -260,8 +260,8 @@ export default function TShirtEditor() {
   const applyImageToCanvas = useCallback((imageUrl: string, canvas: fabric.Canvas) => {
     fabric.Image.fromURL(imageUrl, { crossOrigin: "anonymous" }).then((img) => {
       img.set({
-        // Blend mode — white pixels become transparent against the shirt
-        globalCompositeOperation: 'multiply',
+        // Blend mode — source-over allows true transparent PNGs to render correctly
+        globalCompositeOperation: 'source-over',
         // Unlock every transform axis
         lockMovementX: false,
         lockMovementY: false,
@@ -330,7 +330,7 @@ export default function TShirtEditor() {
     }, 300);
 
     try {
-      const enhancedPrompt = `${prompt.trim()}, vector art, t-shirt design, isolated on pure white background, clean edges, no background noise, high contrast, print ready`;
+      const enhancedPrompt = `${prompt.trim()}, vector art, t-shirt design, isolated on pure white background, clean edges, no background noise, high contrast, print ready, Remove the entire background, making it completely transparent while preserving fine details like edges, hair, and shadows. Output as a clean PNG.`;
 
       const response = await fetch('/api/generate-image', {
         method: 'POST',

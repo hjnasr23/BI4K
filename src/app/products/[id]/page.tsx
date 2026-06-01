@@ -2,6 +2,20 @@ import { supabase } from "@/lib/supabase";
 import { notFound } from "next/navigation";
 import ClientProductCustomizer from "./ClientProductCustomizer";
 
+export async function generateStaticParams() {
+  try {
+    const { data: products } = await supabase.from('products').select('slug, id');
+    if (products) {
+      return products.map((product) => ({
+        id: product.slug || product.id,
+      }));
+    }
+  } catch (error) {
+    console.error("Failed to generate static params for products:", error);
+  }
+  return [];
+}
+
 export default async function ProductPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   

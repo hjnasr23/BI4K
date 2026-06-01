@@ -42,7 +42,7 @@ export default function CartPage() {
       <main className="flex-1 container mx-auto px-4 pt-32 pb-20 max-w-5xl">
         <div className="flex items-center gap-3 mb-10">
           <ShoppingCart className="w-8 h-8 text-brand-blue" />
-          <h1 className="text-4xl font-black uppercase tracking-tighter text-neutral-900 dark:text-white">Mon Panier / Your Cart</h1>
+          <h1 className="text-4xl font-black uppercase tracking-tighter text-neutral-900 dark:text-white">Mon Panier</h1>
         </div>
 
         {items.length === 0 ? (
@@ -92,7 +92,7 @@ export default function CartPage() {
                     <div>
                       <h3 className="text-xl font-black uppercase tracking-tighter text-neutral-900 dark:text-white mb-1">{item.name}</h3>
                       <div className="flex items-center gap-4 text-xs font-bold uppercase tracking-widest text-neutral-500 dark:text-foreground/50">
-                        <span>Taille / Size: <span className="text-neutral-900 dark:text-white">{item.size}</span></span>
+                        <span>Taille: <span className="text-neutral-900 dark:text-white">{item.size}</span></span>
                       </div>
                     </div>
 
@@ -120,7 +120,7 @@ export default function CartPage() {
                           onClick={() => removeFromCart(item.cartItemId)}
                           className="text-[10px] uppercase font-black tracking-widest text-rose-500 dark:text-rose-400 hover:text-rose-600 dark:hover:text-rose-300 mt-2 flex items-center gap-1 transition-colors"
                         >
-                          <Trash2 className="w-3 h-3" /> Supprimer / Remove
+                          <Trash2 className="w-3 h-3" /> Supprimer
                         </button>
                       </div>
                     </div>
@@ -132,15 +132,15 @@ export default function CartPage() {
             {/* Summary Panel */}
             <div className="lg:col-span-1">
               <div className="bg-white dark:bg-[#111116] border border-neutral-200 dark:border-white/5 p-8 rounded-[2.5rem] sticky top-32 shadow-sm dark:shadow-2xl">
-                <h2 className="text-xl font-black uppercase tracking-tighter mb-6 text-neutral-900 dark:text-white">Récapitulatif / Summary</h2>
+                <h2 className="text-xl font-black uppercase tracking-tighter mb-6 text-neutral-900 dark:text-white">Récapitulatif</h2>
 
                 <div className="space-y-4 text-sm font-medium text-neutral-500 dark:text-slate-400 mb-8 border-b border-neutral-200 dark:border-white/10 pb-6">
                   <div className="flex justify-between">
-                    <span>Sous-total / Subtotal</span>
+                    <span>Sous-total</span>
                     <span className="text-neutral-900 dark:text-white font-bold">{Number(subtotal).toFixed(2)} MAD</span>
                   </div>
                   <div className="flex justify-between">
-                    <span>Taxe / Tax</span>
+                    <span>Taxe</span>
                     <span className="text-neutral-900 dark:text-white font-bold">{Number(tax).toFixed(2)} MAD</span>
                   </div>
                 </div>
@@ -152,10 +152,10 @@ export default function CartPage() {
 
                 <div className="mb-8 p-4 rounded-2xl bg-neutral-50 dark:bg-white/5 border border-neutral-200 dark:border-white/5 text-center">
                   <p className="text-[9px] font-black uppercase tracking-widest text-neutral-500 dark:text-slate-400">
-                    🚚 Livraison / Shipping
+                    🚚 Livraison
                   </p>
                   <p className="text-[11px] font-bold text-brand-blue mt-1 uppercase tracking-wider">
-                    Calculé à l'étape suivante / Calculated at checkout
+                    Calculé à l'étape suivante
                   </p>
                 </div>
 
@@ -163,11 +163,11 @@ export default function CartPage() {
                   onClick={handleCheckout}
                   className="w-full py-5 rounded-2xl bg-brand-blue text-white font-black uppercase text-sm tracking-widest flex items-center justify-center gap-2 hover:bg-brand-blue/80 transition-all hover:scale-[1.02] active:scale-[0.98] shadow-xl shadow-brand-blue/20"
                 >
-                  COMMANDER (CHECKOUT) <ArrowRight className="w-4 h-4" />
+                  COMMANDER <ArrowRight className="w-4 h-4" />
                 </button>
 
                 <p className="text-center text-[9px] text-neutral-400 dark:text-foreground/40 mt-6 font-bold uppercase tracking-widest">
-                  Paiement sécurisé / Secure Payment
+                  Paiement sécurisé
                 </p>
               </div>
             </div>

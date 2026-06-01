@@ -195,13 +195,13 @@ export function Navbar() {
                 <>
                   <button
                     onClick={() => openAuthModal('login')}
-                    className="px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-card-bg hover:text-brand-blue transition-all"
+                    className="px-5 py-2.5 rounded-xl text-sm font-bold whitespace-nowrap hover:bg-card-bg hover:text-brand-blue transition-all"
                   >
                     {t.login}
                   </button>
                   <button
                     onClick={() => openAuthModal('signup')}
-                    className="px-5 py-2.5 rounded-xl text-sm font-black bg-brand-blue text-white hover:bg-brand-blue/80 shadow-lg shadow-brand-blue/20 hover:scale-[1.05] active:scale-[0.98] transition-all"
+                    className="px-5 py-2.5 rounded-xl text-sm font-black whitespace-nowrap bg-brand-blue text-white hover:bg-brand-blue/80 shadow-lg shadow-brand-blue/20 hover:scale-[1.05] active:scale-[0.98] transition-all"
                   >
                     {t.signup}
                   </button>
